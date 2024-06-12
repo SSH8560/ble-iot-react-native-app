@@ -3,6 +3,9 @@ export type RootStackParams = {
   BleScan: undefined;
   BleManage: undefined;
   DeviceRegistration: undefined;
+  ScaleDeviceDetail: {
+    device_id: string;
+  };
 };
 
 export type MainTabParams = {

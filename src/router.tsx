@@ -3,8 +3,6 @@ import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import MyDeviceScreen from '@/screens/MyDeviceScreen';
 import SettingsScreen from '@/screens/SettingsScreen';
-import BleScanScreen from './screens/BleScanScreen';
-import BleManageScreen from './screens/BleManageScreen';
 import {BleProvider} from './providers/BleProvider';
 import {
   DeviceRegistrationParams,
@@ -14,23 +12,12 @@ import {
 import FindDeviceScreen from './screens/Wifi/FindDeviceScreen';
 import WifiScreen from './screens/Wifi/WifiScreen';
 import PairingScreen from './screens/Wifi/PairingScreen';
+import ScaleDeviceDetailScreen from './screens/ScaleDeviceDetailScreen';
 
 const Stack = createNativeStackNavigator<RootStackParams>();
-const BleStack = createNativeStackNavigator();
 const DeviceRegistrationStack =
   createNativeStackNavigator<DeviceRegistrationParams>();
 const BottomTab = createBottomTabNavigator<MainTabParams>();
-
-const Ble = () => {
-  return (
-    <BleProvider>
-      <BleStack.Navigator>
-        <BleStack.Screen name="BleScan" component={BleScanScreen} />
-        <BleStack.Screen name="BleManage" component={BleManageScreen} />
-      </BleStack.Navigator>
-    </BleProvider>
-  );
-};
 
 const DeviceRegistration = () => {
   return (
@@ -64,6 +51,10 @@ const Router = () => {
     <Stack.Navigator screenOptions={{headerShown: false}}>
       <Stack.Screen name="MainTab" component={MainTab} />
       <Stack.Screen name="DeviceRegistration" component={DeviceRegistration} />
+      <Stack.Screen
+        name="ScaleDeviceDetail"
+        component={ScaleDeviceDetailScreen}
+      />
     </Stack.Navigator>
   );
 };
