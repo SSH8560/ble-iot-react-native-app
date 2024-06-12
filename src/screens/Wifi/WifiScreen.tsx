@@ -12,9 +12,10 @@ import {
 import WifiManager from 'react-native-wifi-reborn';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import {RootStackParams} from '@/router.d';
+import {DeviceRegistrationParams} from '@/router.d';
+import {useBLE} from '@/providers/BleProvider';
 interface WifiScreenProps
-  extends NativeStackScreenProps<RootStackParams, 'Wifi'> {}
+  extends NativeStackScreenProps<DeviceRegistrationParams, 'Wifi'> {}
 
 const WifiScreen = ({
   route: {
@@ -22,6 +23,7 @@ const WifiScreen = ({
   },
   navigation,
 }: WifiScreenProps) => {
+  const {disconnect} = useBLE();
   const [wifiSsid, setWifiSsid] = useState<string>('');
   const [wifiPassword, setWifiPassword] = useState<string>('');
   useEffect(() => {
@@ -31,7 +33,12 @@ const WifiScreen = ({
         .then(setWifiSsid)
         .catch(() => setWifiSsid(''));
     });
+
+    return () => {
+      disconnect(peripheralId);
+    };
   }, []);
+
   return (
     <View style={{padding: 16}}>
       <View style={styles.wifiFormContainer}>
@@ -73,7 +80,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   iconTextContainer: {flexDirection: 'row', alignItems: 'center', gap: 8},
-  wifiPasswordInput: {width: '100%', paddingLeft: 0},
+  wifiPasswordInput: {width: '100%', paddingLeft: 0, color: '#000'},
 });
 
 export default WifiScreen;

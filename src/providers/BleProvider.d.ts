@@ -6,6 +6,7 @@ type startNotificateSettingStatus = (
 ) => Promise<void>;
 
 export interface BleContextType {
+  isScanning: boolean;
   connectedPeripheral: string | null;
   scannedPeripherals: Map<string, Peripheral>;
   scanPeripheral: (duration: number) => Promise<void>;
@@ -27,12 +28,11 @@ export interface BleContextType {
     peripheralId,
     wifiPassword,
     wifiSsid,
-    userId,
   }: {
     peripheralId: string;
     wifiSsid: string;
     wifiPassword: string;
-    userId: string;
   }) => Promise<void>;
   startNotificateSettingStatus: startNotificateSettingStatus;
+  readDeviceId: (peripheralId: string) => Promise<string>;
 }

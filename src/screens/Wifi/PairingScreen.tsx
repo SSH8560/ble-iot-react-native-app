@@ -1,37 +1,91 @@
 import {getUser} from '@/apis/supabase/auth';
+import {postUserDevice} from '@/apis/supabase/userDevices';
 import {useBLE} from '@/providers/BleProvider';
-import {RootStackParams} from '@/router.d';
+import {DeviceRegistrationParams, RootStackParams} from '@/router.d';
+import {CompositeScreenProps} from '@react-navigation/native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import React, {useEffect, useState} from 'react';
-import {View} from 'react-native';
+import {Text, View} from 'react-native';
 
 interface PairingScreenProps
-  extends NativeStackScreenProps<RootStackParams, 'Pairing'> {}
+  extends CompositeScreenProps<
+    NativeStackScreenProps<DeviceRegistrationParams, 'Pairing'>,
+    NativeStackScreenProps<RootStackParams>
+  > {}
 
 const PairingScreen = ({
   route: {
     params: {peripheralId, wifiPassword, wifiSsid},
   },
+  navigation,
 }: PairingScreenProps) => {
-  const {sendWiFiCredentials, startNotificateSettingStatus} = useBLE();
+  const [status, setStatus] = useState<
+    'PAIRING' | 'REGISTERING' | 'DONE' | 'ERROR'
+  >('PAIRING');
+  const {sendWiFiCredentials, startNotificateSettingStatus, readDeviceId} =
+    useBLE();
 
   useEffect(() => {
-    initiate();
+    switch (status) {
+      case 'PAIRING':
+        onPairing();
+        return;
+      case 'REGISTERING':
+        onRegistering();
+        return;
+      case 'DONE':
+        onDone();
+        return;
+      case 'ERROR':
+        onError();
+        return;
+    }
 
-    async function initiate() {
-      const {id} = await getUser();
-      startNotificateSettingStatus(peripheralId, value => {
-        console.log(String.fromCharCode(...value));
-      });
+    async function onPairing() {
       sendWiFiCredentials({
         peripheralId,
-        userId: id,
         wifiPassword,
         wifiSsid,
       });
+      startNotificateSettingStatus(peripheralId, handleOnReceiveSettingStatus);
     }
-  }, []);
-  return <View></View>;
+    async function onRegistering() {
+      try {
+        const device_id = await readDeviceId(peripheralId);
+        await postUserDevice(device_id);
+        setStatus('DONE');
+      } catch (e) {
+        navigation.navigate('MainTab');
+      }
+    }
+    async function onDone() {
+      navigation.navigate('MainTab');
+    }
+    async function onError() {
+      navigation.goBack();
+    }
+  }, [status]);
+
+  const handleOnReceiveSettingStatus = (data: number[]) => {
+    const result = String.fromCharCode(...data);
+    switch (result) {
+      case 'success':
+        setStatus('REGISTERING');
+        return;
+      case 'fail':
+        setStatus('ERROR');
+        return;
+      default:
+        setStatus('ERROR');
+        return;
+    }
+  };
+
+  return (
+    <View>
+      <Text>{status}</Text>
+    </View>
+  );
 };
 
 export default PairingScreen;
