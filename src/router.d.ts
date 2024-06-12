@@ -6,7 +6,8 @@ export type RootStackParams = {
 };
 
 export type MainTabParams = {
-  Home: undefined;
+  MyDevice: undefined;
+  Setting: undefined;
 };
 
 export type DeviceRegistrationParams = {

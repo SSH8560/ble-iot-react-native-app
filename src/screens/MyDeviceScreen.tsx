@@ -1,14 +1,11 @@
 import React from 'react';
-import {Button, StyleSheet, TextInput, View} from 'react-native';
+import {Button, StyleSheet, View} from 'react-native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {MainTabParams, RootStackParams} from '@/router.d';
 import {CompositeScreenProps} from '@react-navigation/native';
 import {BottomTabScreenProps} from '@react-navigation/bottom-tabs';
-import CommonInput from '@/components/CommonInput';
-import Icon from 'react-native-vector-icons/FontAwesome';
 import OauthButton from '@/components/OauthButton';
 import {kakaoSignIn} from '@/apis/supabase/auth';
-import FindDeviceScreen from './Wifi/FindDeviceScreen';
 
 interface HomeScreenProps
   extends CompositeScreenProps<
@@ -16,7 +13,7 @@ interface HomeScreenProps
     BottomTabScreenProps<MainTabParams>
   > {}
 
-const HomeScreen = ({navigation}: HomeScreenProps) => {
+const MyDeviceScreen = ({navigation}: HomeScreenProps) => {
   return (
     <View style={{flex: 1}}>
       <View style={{gap: 16, padding: 16}}>
@@ -41,4 +38,4 @@ const style = StyleSheet.create({
   },
 });
 
-export default HomeScreen;
+export default MyDeviceScreen;
