@@ -22,8 +22,11 @@ const PairingScreen = ({
   const [status, setStatus] = useState<
     'PAIRING' | 'REGISTERING' | 'DONE' | 'ERROR'
   >('PAIRING');
-  const {sendWiFiCredentials, startNotificateSettingStatus, readDeviceId} =
-    useBLE();
+  const {
+    sendWiFiCredentials,
+    startNotificateSettingStatus,
+    readDeviceInfo: readDeviceId,
+  } = useBLE();
 
   useEffect(() => {
     switch (status) {
@@ -51,8 +54,8 @@ const PairingScreen = ({
     }
     async function onRegistering() {
       try {
-        const device_id = await readDeviceId(peripheralId);
-        await postUserDevice(device_id);
+        const {id, type} = await readDeviceId(peripheralId);
+        await postUserDevice({device_id: id, device_type: type});
         setStatus('DONE');
       } catch (e) {
         navigation.navigate('MainTab');

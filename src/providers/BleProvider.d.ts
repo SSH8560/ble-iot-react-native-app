@@ -34,5 +34,5 @@ export interface BleContextType {
     wifiPassword: string;
   }) => Promise<void>;
   startNotificateSettingStatus: startNotificateSettingStatus;
-  readDeviceId: (peripheralId: string) => Promise<string>;
+  readDeviceInfo: (peripheralId: string) => Promise<{id: string; type: string}>;
 }

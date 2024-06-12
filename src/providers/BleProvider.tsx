@@ -243,13 +243,14 @@ export const BleProvider = ({children}: PropsWithChildren) => {
     setScannedPeripherals(new Map());
     BleManager.scan(Array.from(Object.values(SERVICE_UUIDS)), duration, false);
   };
-  const readDeviceId = async (peripheralId: string) => {
+  const readDeviceInfo = async (peripheralId: string) => {
     const data = await BleManager.read(
       peripheralId,
       SERVICE_UUIDS.SETTING_SERVICE_UUD,
       CHARACTERISTIC_UUIDS.SETTING_CHARACTERISTIC_UUID,
     );
-    return String.fromCharCode(...data);
+    const [id, type] = String.fromCharCode(...data).split(',');
+    return {id, type};
   };
 
   return (
@@ -266,7 +267,7 @@ export const BleProvider = ({children}: PropsWithChildren) => {
         stopNotification,
         write,
         sendWiFiCredentials,
-        readDeviceId,
+        readDeviceInfo,
       }}>
       {children}
     </BleContext.Provider>
