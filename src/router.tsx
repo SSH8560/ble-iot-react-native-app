@@ -18,6 +18,7 @@ import PairingScreen from './screens/Wifi/PairingScreen';
 import ScaleDeviceDetailScreen from './screens/ScaleDeviceDetailScreen';
 import SpalshScreen from './screens/SplashScreen';
 import MainBottomTabBar from './components/MainBottomTabBar';
+import SignInScreen from './screens/SignInScreen';
 
 const Stack = createNativeStackNavigator<RootStackParams>();
 const DeviceRegistrationStack =
@@ -62,6 +63,7 @@ const Router = () => {
   return (
     <Stack.Navigator screenOptions={{headerShown: false}}>
       <Stack.Screen name="Splash" component={SpalshScreen} />
+      <Stack.Screen name="SignIn" component={SignInScreen} />
       <Stack.Screen name="MainTab" component={MainTab} />
       <Stack.Screen name="DeviceRegistration" component={DeviceRegistration} />
       <Stack.Screen

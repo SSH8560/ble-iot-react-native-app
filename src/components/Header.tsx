@@ -1,3 +1,4 @@
+import {useTheme} from '@react-navigation/native';
 import React from 'react';
 import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 
@@ -16,13 +17,27 @@ const Header = ({
   onPressLeft,
   onPressRight,
 }: HeaderProps) => {
+  const {colors} = useTheme();
+
   return (
-    <View style={styles.container}>
-      <TouchableOpacity onPress={onPressLeft} hitSlop={16}>
+    <View
+      style={[
+        styles.container,
+        {borderBottomColor: colors.border, borderBottomWidth: 1},
+      ]}>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={onPressLeft}
+        hitSlop={16}>
         {left}
       </TouchableOpacity>
-      <Text>{title}</Text>
-      <TouchableOpacity onPress={onPressRight} hitSlop={16}>
+      <Text style={styles.title} lineBreakMode="tail" numberOfLines={1}>
+        {title}
+      </Text>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={onPressRight}
+        hitSlop={16}>
         {right}
       </TouchableOpacity>
     </View>
@@ -35,7 +50,16 @@ const styles = StyleSheet.create({
     height: 60,
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
+    padding: 10,
+    gap: 10,
+  },
+  title: {
+    flex: 0.8,
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  button: {
+    flex: 0.1,
   },
 });
 

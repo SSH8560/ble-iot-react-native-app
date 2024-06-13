@@ -1,9 +1,9 @@
-import useLifeCycleLogger from '@/hooks/useLifeCycleLogger';
+import {SignOut} from '@/apis/supabase/auth';
 import {RootStackParams, MainTabParams} from '@/router.d';
 import {BottomTabScreenProps} from '@react-navigation/bottom-tabs';
-import {CompositeScreenProps} from '@react-navigation/native';
+import {CommonActions, CompositeScreenProps} from '@react-navigation/native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import React, {useEffect} from 'react';
+import React from 'react';
 import {Button, View} from 'react-native';
 
 interface SettingsScreenProps
@@ -13,13 +13,18 @@ interface SettingsScreenProps
   > {}
 
 const SettingsScreen = ({navigation}: SettingsScreenProps) => {
-  useLifeCycleLogger('Settings');
-
   return (
     <View>
       <Button
-        title="BLE 기기 관리"
-        onPress={() => navigation.navigate('Ble')}
+        title="로그아웃"
+        onPress={async () => {
+          await SignOut();
+          navigation.dispatch(
+            CommonActions.reset({
+              routes: [{name: 'SignIn'}],
+            }),
+          );
+        }}
       />
     </View>
   );
