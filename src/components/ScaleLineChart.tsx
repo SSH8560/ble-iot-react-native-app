@@ -7,13 +7,14 @@ import {
   Text,
   useFont,
 } from '@shopify/react-native-skia';
-import {curveBasis, line, path, scaleLinear, scaleUtc} from 'd3';
+import {curveBasis, line, scaleLinear, scaleUtc} from 'd3';
 import dayjs from 'dayjs';
 import React, {useMemo, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 
 interface ScaleLineChartProps {
   data: SimpleScaleDeviceValue[];
+  xDomain: [Date, Date];
   yDomain: [number, number];
   yMargin?: number;
   yPadding?: number;
@@ -23,6 +24,7 @@ interface ScaleLineChartProps {
 
 const ScaleLineChart = ({
   data,
+  xDomain,
   yDomain,
   xMargin = 10,
   xPadding = 20,
@@ -39,9 +41,7 @@ const ScaleLineChart = ({
   const {canvasHeight, canvasWidth} = canvasRect;
   const font = useFont(require('@/assets/fonts/NanumSquareR.ttf'), 18);
 
-  const startOfDay = dayjs().startOf('day').toDate();
-  const endOfDay = dayjs().add(1, 'day').startOf('day').toDate();
-  const x = scaleUtc().domain([startOfDay, endOfDay]);
+  const x = scaleUtc().domain(xDomain);
   const y = scaleLinear().domain(yDomain);
 
   const xAxisData = useMemo(
@@ -49,11 +49,11 @@ const ScaleLineChart = ({
       Array.from({length: 13}, (_, i) => i).map(i => {
         const evenHour = i * 2;
         return {
-          value: dayjs(startOfDay).hour(evenHour).toDate(),
+          value: dayjs(xDomain[0]).hour(evenHour).toDate(),
           label: `${evenHour}`,
         };
       }),
-    [startOfDay],
+    [xDomain],
   );
   const maxXAxisHeight = useMemo(
     () =>

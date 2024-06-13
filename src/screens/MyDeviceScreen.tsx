@@ -9,7 +9,6 @@ import Header from '@/components/Header';
 import Icon from 'react-native-vector-icons/Ionicons';
 import DeviceList from '@/components/DeviceList';
 import {Text} from 'react-native';
-import {color} from 'd3';
 
 interface HomeScreenProps
   extends CompositeScreenProps<
