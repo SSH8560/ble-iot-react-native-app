@@ -1,4 +1,6 @@
 export type RootStackParams = {
+  Splash: undefined;
+  SignIn: undefined;
   MainTab: undefined;
   BleScan: undefined;
   BleManage: undefined;
