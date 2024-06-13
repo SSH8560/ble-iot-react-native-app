@@ -1,20 +1,15 @@
 import React, {useEffect, useState} from 'react';
-import {
-  Button,
-  FlatList,
-  ListRenderItem,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {MainTabParams, RootStackParams} from '@/router.d';
-import {CompositeScreenProps} from '@react-navigation/native';
+import {CompositeScreenProps, useTheme} from '@react-navigation/native';
 import {BottomTabScreenProps} from '@react-navigation/bottom-tabs';
-import OauthButton from '@/components/OauthButton';
-import {kakaoSignIn} from '@/apis/supabase/auth';
 import {UserDevice, getUserDevices} from '@/apis/supabase/userDevices';
+import Header from '@/components/Header';
+import Icon from 'react-native-vector-icons/Ionicons';
+import DeviceList from '@/components/DeviceList';
+import {Text} from 'react-native';
+import {color} from 'd3';
 
 interface HomeScreenProps
   extends CompositeScreenProps<
@@ -23,31 +18,49 @@ interface HomeScreenProps
   > {}
 
 const MyDeviceScreen = ({navigation}: HomeScreenProps) => {
-  const [devices, setDevices] = useState<UserDevice[]>([]);
+  const [devices, setDevices] = useState<UserDevice[] | null>(null);
 
   useEffect(() => {
     getUserDevices().then(setDevices);
   }, []);
 
-  const renderDevice: ListRenderItem<UserDevice> = ({item: {device_id}}) => {
-    return (
-      <TouchableOpacity
-        onPress={() => navigation.navigate('ScaleDeviceDetail', {device_id})}>
-        <Text>{device_id}</Text>
-      </TouchableOpacity>
-    );
-  };
-
   return (
     <View style={{flex: 1}}>
-      <View style={{gap: 16, padding: 16}}>
-        <Button
-          title="기기 등록"
-          onPress={() => navigation.navigate('DeviceRegistration')}
+      <Header
+        title=""
+        right={<AddDeviceIcon />}
+        onPressRight={() => navigation.navigate('DeviceRegistration')}
+      />
+      {!devices ? (
+        <View>
+          <Text style={{color: '#000'}}>로딩 중</Text>
+        </View>
+      ) : (
+        <DeviceList
+          devices={devices}
+          onPressDeviceItem={({device_id}) =>
+            navigation.navigate('ScaleDeviceDetail', {device_id})
+          }
         />
-        <FlatList data={devices} renderItem={renderDevice} />
-        <OauthButton variant="kakao" onPress={() => kakaoSignIn()} />
-      </View>
+      )}
+    </View>
+  );
+};
+
+const AddDeviceIcon = () => {
+  const {colors} = useTheme();
+
+  return (
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: colors.primary,
+        borderRadius: 100,
+        aspectRatio: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+      }}>
+      <Icon name="add" size={24} color={colors.background} />
     </View>
   );
 };

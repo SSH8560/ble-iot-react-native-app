@@ -35,5 +35,7 @@ export type UserDevice = {
   id: number;
   user_id: string;
   device_id: string;
-  created_at: Date;
+  device_type: string;
+  device_name: string | null;
+  created_at: string;
 };
