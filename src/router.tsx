@@ -19,6 +19,7 @@ import ScaleDeviceDetailScreen from './screens/ScaleDeviceDetailScreen';
 import SpalshScreen from './screens/SplashScreen';
 import MainBottomTabBar from './components/MainBottomTabBar';
 import SignInScreen from './screens/SignInScreen';
+import ScaleDeviceSettingScreen from './screens/ScaleDeviceSettingScreen';
 
 const Stack = createNativeStackNavigator<RootStackParams>();
 const DeviceRegistrationStack =
@@ -69,6 +70,10 @@ const Router = () => {
       <Stack.Screen
         name="ScaleDeviceDetail"
         component={ScaleDeviceDetailScreen}
+      />
+      <Stack.Screen
+        name="ScaleDeviceSetting"
+        component={ScaleDeviceSettingScreen}
       />
     </Stack.Navigator>
   );

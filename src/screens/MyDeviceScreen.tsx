@@ -37,8 +37,8 @@ const MyDeviceScreen = ({navigation}: HomeScreenProps) => {
       ) : (
         <DeviceList
           devices={devices}
-          onPressDeviceItem={({device_id}) =>
-            navigation.navigate('ScaleDeviceDetail', {device_id})
+          onPressDeviceItem={device =>
+            navigation.navigate('ScaleDeviceDetail', {device})
           }
         />
       )}

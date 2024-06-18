@@ -1,3 +1,5 @@
+import {UserDevice} from './apis/supabase/userDevices';
+
 export type RootStackParams = {
   Splash: undefined;
   SignIn: undefined;
@@ -6,7 +8,10 @@ export type RootStackParams = {
   BleManage: undefined;
   DeviceRegistration: undefined;
   ScaleDeviceDetail: {
-    device_id: string;
+    device: UserDevice;
+  };
+  ScaleDeviceSetting: {
+    device: UserDevice;
   };
 };
 

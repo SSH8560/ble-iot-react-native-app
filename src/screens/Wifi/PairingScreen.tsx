@@ -54,8 +54,8 @@ const PairingScreen = ({
     }
     async function onRegistering() {
       try {
-        const {id, type} = await readDeviceId(peripheralId);
-        await postUserDevice({device_id: id, device_type: type});
+        const {type} = await readDeviceId(peripheralId);
+        await postUserDevice({device_id: peripheralId, device_type: type});
         setStatus('DONE');
       } catch (e) {
         navigation.navigate('MainTab');

@@ -3,14 +3,13 @@ import {supabase} from './supabase';
 const RELATION = 'user_devices';
 
 export const postUserDevice = async ({
+  peripheral_id,
   device_id,
   device_type,
-}: {
-  device_id: string;
-  device_type: string;
-}) => {
+}: Pick<UserDevice, 'peripheral_id' | 'device_id' | 'device_type'>) => {
   try {
     const {error} = await supabase.from(RELATION).insert({
+      peripheral_id,
       device_id,
       device_type,
     });
@@ -36,6 +35,7 @@ export type UserDevice = {
   user_id: string;
   device_id: string;
   device_type: string;
+  peripheral_id: string;
   device_name: string | null;
   created_at: string;
 };

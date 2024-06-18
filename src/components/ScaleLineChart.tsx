@@ -9,7 +9,7 @@ import {
 } from '@shopify/react-native-skia';
 import {curveBasis, line, scaleLinear, scaleUtc} from 'd3';
 import dayjs from 'dayjs';
-import React, {useMemo, useState} from 'react';
+import React, {Fragment, useMemo, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 
 interface ScaleLineChartProps {
@@ -111,7 +111,7 @@ const ScaleLineChart = ({
             axis.lineTo(xMaxRange - strokeWidth / 2, scaledY);
 
             return (
-              <>
+              <Fragment key={label}>
                 <Path
                   path={axis}
                   color={'#0002'}
@@ -127,7 +127,7 @@ const ScaleLineChart = ({
                   text={label}
                   color="#000"
                 />
-              </>
+              </Fragment>
             );
           })}
 
@@ -139,7 +139,7 @@ const ScaleLineChart = ({
             axis.lineTo(scaledX, yMaxRange - strokeWidth / 2);
 
             return (
-              <>
+              <Fragment key={label}>
                 <Path
                   path={axis}
                   color={'#0002'}
@@ -155,7 +155,7 @@ const ScaleLineChart = ({
                   text={label}
                   color="#000"
                 />
-              </>
+              </Fragment>
             );
           })}
 

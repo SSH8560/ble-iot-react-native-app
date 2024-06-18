@@ -17,9 +17,11 @@ interface ScaleDeviceDetailScreenProps
 const ScaleDeviceDetailScreen = ({
   navigation,
   route: {
-    params: {device_id},
+    params: {device},
   },
 }: ScaleDeviceDetailScreenProps) => {
+  const {device_id} = device;
+
   const [date, setDate] = useState<Date>(new Date());
   const [scaleValues, setScaleValues] = useState<SimpleScaleDeviceValue[]>([]);
 
@@ -38,7 +40,7 @@ const ScaleDeviceDetailScreen = ({
         left={<Icon name="chevron-left" size={28} />}
         onPressLeft={() => navigation.goBack()}
         right={<Icon name="settings" size={28} />}
-        onPressRight={() => {}}
+        onPressRight={() => navigation.navigate('ScaleDeviceSetting', {device})}
       />
       <DateController
         date={date}
