@@ -25,34 +25,38 @@ const createKey = ({
 
 const useBLE = () => {
   const handlerMapRef = useRef(new Map<string, (bytes: number[]) => void>());
-  const discoverListener = useRef<EmitterSubscription>();
-  const stopScanListenerRef = useRef<EmitterSubscription>();
-  const connectListenerRef = useRef<EmitterSubscription>();
-  const disconnectListenerRef = useRef<EmitterSubscription>();
-  const updateValueForCharacteristicListenerRef = useRef<EmitterSubscription>();
-  const listeners = useRef<EmitterSubscription[]>([]);
+  const emitterSubscriptions = useRef<EmitterSubscription[]>([]);
   const [isScanning, setIsScanning] = useState(false);
   const [scannedPeripherals, setScannedPeripherals] = useState<
     Map<string, Peripheral>
   >(new Map());
-  const [connectedPeripheral, setConncetedPeripheral] = useState<string | null>(
-    null,
+  const [connectedPeripherals, setConnectedPeripherals] = useState<string[]>(
+    [],
   );
 
-  const handleDisconnectPeripheral = useCallback(({}: {peripheral: string}) => {
-    setConncetedPeripheral(null);
-  }, []);
-  const handleConnectPeripheral = useCallback(
+  const handleDisconnectPeripheral = useCallback(
     ({peripheral}: {peripheral: string}) => {
-      setConncetedPeripheral(peripheral);
+      setConnectedPeripherals(prevState =>
+        prevState.filter(
+          connectedPeripheralId => connectedPeripheralId !== peripheral,
+        ),
+      );
     },
     [],
   );
-  const handleDiscoverPeripheral = (peripheral: Peripheral) => {
-    setScannedPeripherals(
-      state => new Map(state.set(peripheral.id, peripheral)),
+  const handleConnectPeripheral = useCallback(
+    ({peripheral}: {peripheral: string}) => {
+      setConnectedPeripherals(prevState => [...prevState, peripheral]);
+    },
+    [],
+  );
+  const handleDiscoverPeripheral = useCallback((peripheral: Peripheral) => {
+    setScannedPeripherals(prevState =>
+      prevState.has(peripheral.id)
+        ? prevState
+        : new Map(prevState.set(peripheral.id, peripheral)),
     );
-  };
+  }, []);
   const handleStopScan = ({}: {status: number}) => {
     console.log('End scanning');
     setIsScanning(false);
@@ -90,7 +94,7 @@ const useBLE = () => {
   );
 
   useEffect(() => {
-    const addedListeners = listeners.current;
+    const addedEmitterSubscriptions = emitterSubscriptions.current;
     console.log('init ble');
     init();
     async function init() {
@@ -99,43 +103,47 @@ const useBLE = () => {
       await BleManager.start({showAlert: false}).then(() =>
         console.log('BleManager started'),
       );
-      const connectedPeripherals = await BleManager.getConnectedPeripherals();
-      if (connectedPeripherals) {
-        connectedPeripherals.forEach(peripheral =>
-          BleManager.disconnect(peripheral.id),
-        );
-      }
 
-      discoverListener.current = bleManagerEmitter.addListener(
-        'BleManagerDiscoverPeripheral',
-        handleDiscoverPeripheral,
+      BleManager.getConnectedPeripherals().then(value => {
+        const peripheralIds = value.map(peripheral => peripheral.id);
+        setConnectedPeripherals(peripheralIds);
+      });
+      addedEmitterSubscriptions.push(
+        bleManagerEmitter.addListener(
+          'BleManagerDiscoverPeripheral',
+          handleDiscoverPeripheral,
+        ),
       );
-      stopScanListenerRef.current = bleManagerEmitter.addListener(
-        'BleManagerStopScan',
-        handleStopScan,
+      addedEmitterSubscriptions.push(
+        bleManagerEmitter.addListener('BleManagerStopScan', handleStopScan),
       );
-      disconnectListenerRef.current = bleManagerEmitter.addListener(
-        'BleManagerDisconnectPeripheral',
-        handleDisconnectPeripheral,
+      addedEmitterSubscriptions.push(
+        bleManagerEmitter.addListener(
+          'BleManagerDisconnectPeripheral',
+          handleDisconnectPeripheral,
+        ),
       );
-      connectListenerRef.current = bleManagerEmitter.addListener(
-        'BleManagerConnectPeripheral',
-        handleConnectPeripheral,
+      addedEmitterSubscriptions.push(
+        bleManagerEmitter.addListener(
+          'BleManagerConnectPeripheral',
+          handleConnectPeripheral,
+        ),
       );
-      updateValueForCharacteristicListenerRef.current =
+      addedEmitterSubscriptions.push(
         bleManagerEmitter.addListener(
           'BleManagerDidUpdateValueForCharacteristic',
           handleUpdateValueForCharacteristic,
-        );
+        ),
+      );
     }
 
     return () => {
-      discoverListener.current?.remove();
-      stopScanListenerRef.current?.remove();
-      disconnectListenerRef.current?.remove();
-      connectListenerRef.current?.remove();
-      updateValueForCharacteristicListenerRef.current?.remove();
-      addedListeners.forEach(listener => listener.remove());
+      addedEmitterSubscriptions.forEach(sub => sub.remove());
+      BleManager.getConnectedPeripherals().then(value => {
+        value
+          .map(peripheral => peripheral.id)
+          .forEach(peripheralId => BleManager.disconnect(peripheralId));
+      });
     };
   }, []);
 
@@ -146,9 +154,9 @@ const useBLE = () => {
       throw e;
     }
   }, []);
-  const disconnect = async (peripheralId: string) => {
+  const disconnect = useCallback(async (peripheralId: string) => {
     await BleManager.disconnect(peripheralId);
-  };
+  }, []);
   const retrieveServices = useCallback(async (peripheralId: string) => {
     return await BleManager.retrieveServices(peripheralId);
   }, []);
@@ -198,94 +206,54 @@ const useBLE = () => {
     },
     [],
   );
-  const startNotificateSettingStatus = async (
-    peripheralId: string,
-    onUpdate: (bytes: number[]) => void,
-  ) => {
-    const serviceUUID = SERVICE_UUIDS.SETTING_SERVICE_UUD;
-    const characteristicUUID = CHARACTERISTIC_UUIDS.SETTING_CHARACTERISTIC_UUID;
-
-    await BleManager.startNotification(
-      peripheralId,
-      serviceUUID,
-      characteristicUUID,
-    );
-    console.log('1');
-    handlerMapRef.current.set(
-      createKey({
-        peripheral: peripheralId,
-        service: serviceUUID,
-        characteristic: characteristicUUID,
-      }),
-      onUpdate,
-    );
-  };
-  const write = async ({
-    peripheralId,
-    serviceUUID,
-    characteristicUUID,
-    data,
-  }: {
-    peripheralId: string;
-    serviceUUID: string;
-    characteristicUUID: string;
-    data: number[];
-  }) => {
-    await BleManager.write(
+  const write = useCallback(
+    async ({
       peripheralId,
       serviceUUID,
       characteristicUUID,
       data,
-      247,
-    );
-  };
-  const sendWiFiCredentials = async ({
-    peripheralId,
-    wifiPassword,
-    wifiSsid,
-  }: {
-    peripheralId: string;
-    wifiSsid: string;
-    wifiPassword: string;
-  }) => {
-    write({
-      peripheralId,
-      serviceUUID: SERVICE_UUIDS.SETTING_SERVICE_UUD,
-      characteristicUUID: CHARACTERISTIC_UUIDS.SETTING_CHARACTERISTIC_UUID,
-      data: Array.from(Buffer.from(`${wifiSsid},${wifiPassword}`)),
-    });
-  };
-  const scanPeripheral = async (duration: number) => {
-    if (isScanning) return;
+    }: {
+      peripheralId: string;
+      serviceUUID: string;
+      characteristicUUID: string;
+      data: number[];
+    }) => {
+      await BleManager.write(
+        peripheralId,
+        serviceUUID,
+        characteristicUUID,
+        data,
+        247,
+      );
+    },
+    [],
+  );
+  const startScan = useCallback(
+    async (duration: number) => {
+      if (isScanning) return;
 
-    console.log('Start scanning...');
-    setIsScanning(true);
-    setScannedPeripherals(new Map());
-    BleManager.scan(Array.from(Object.values(SERVICE_UUIDS)), duration, false);
-  };
-  const readDeviceInfo = async (peripheralId: string) => {
-    const data = await BleManager.read(
-      peripheralId,
-      SERVICE_UUIDS.SETTING_SERVICE_UUD,
-      CHARACTERISTIC_UUIDS.SETTING_CHARACTERISTIC_UUID,
-    );
-    const [id, type] = String.fromCharCode(...data).split(',');
-    return {id, type};
-  };
+      console.log('Start scanning...');
+      setIsScanning(true);
+      setScannedPeripherals(new Map());
+      BleManager.scan([], duration, false);
+    },
+    [isScanning],
+  );
+  const stopScan = useCallback(async () => {
+    await BleManager.stopScan();
+  }, []);
 
   return {
     isScanning,
-    connectedPeripheral,
+    connectedPeripherals,
     scannedPeripherals,
-    scanPeripheral,
+    startScan,
+    stopScan,
     connect,
     disconnect,
     retrieveServices,
-    stopNotification,
     write,
-    readDeviceInfo,
-    sendWiFiCredentials,
-    startNotificateSettingStatus,
+    stopNotification,
     startNotification,
   };
 };

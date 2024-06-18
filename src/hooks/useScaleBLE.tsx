@@ -7,48 +7,27 @@ const useScaleBLE = (peripheralId: string) => {
   const {
     connect,
     disconnect,
-    connectedPeripheral,
-    scanPeripheral,
+    connectedPeripherals,
     scannedPeripherals,
     startNotification,
     stopNotification,
     retrieveServices,
+    startScan,
+    stopScan,
   } = useBLE();
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [scaleValue, setScaleValue] = useState<number | null>(null);
 
   useEffect(() => {
-    scanPeripheral(10);
-
     return () => {
-      if (isConnected) {
-        stopNotification({
-          peripheralId,
-          serviceUUID: SERVICE_UUIDS.SERVICE_UUID,
-          characteristicUUID: CHARACTERISTIC_UUIDS.CHARACTERISTIC_UUID,
-        });
-        disconnect(peripheralId);
-      }
+      stopNotification({
+        peripheralId,
+        serviceUUID: SERVICE_UUIDS.SERVICE_UUID,
+        characteristicUUID: CHARACTERISTIC_UUIDS.CHARACTERISTIC_UUID,
+      });
+      disconnect(peripheralId);
     };
   }, []);
-
-  useEffect(() => {
-    if (isConnected) return;
-
-    if (scannedPeripherals.has(peripheralId)) {
-      console.log(scannedPeripherals.has(peripheralId));
-      connect(peripheralId);
-    }
-  }, [scannedPeripherals, isConnected]);
-
-  useEffect(() => {
-    if (connectedPeripheral === peripheralId) {
-      setIsConnected(true);
-      onConnect();
-    } else {
-      setIsConnected(false);
-    }
-  }, [connectedPeripheral, peripheralId, startNotification, onConnect]);
 
   const onConnect = useCallback(async () => {
     await retrieveServices(peripheralId);
@@ -63,7 +42,27 @@ const useScaleBLE = (peripheralId: string) => {
     });
   }, []);
 
-  return {scaleValue, isConnected};
+  const connectDevice = async () => {
+    startScan(10, peripheral => {
+      console.log(peripheral);
+      if (peripheral.id === peripheralId) {
+        connect(peripheralId);
+        stopScan();
+      }
+    });
+  };
+  const disconnectDevice = async () => {
+    console.log('1');
+    disconnect(peripheralId);
+  };
+
+  return {
+    scaleValue,
+    isConnected,
+    scannedPeripherals,
+    connectDevice,
+    disconnectDevice,
+  };
 };
 
 export default useScaleBLE;
