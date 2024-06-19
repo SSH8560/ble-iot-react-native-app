@@ -6,7 +6,6 @@ import React, {useCallback, useEffect} from 'react';
 import {
   View,
   Text,
-  ActivityIndicator,
   TouchableOpacity,
   FlatList,
   ListRenderItem,
@@ -17,10 +16,11 @@ interface FindDeviceScreenProps
   extends NativeStackScreenProps<DeviceRegistrationParams, 'FindDevice'> {}
 
 const FindDeviceScreen = ({navigation}: FindDeviceScreenProps) => {
-  const {isScanning, scanPeripheral, scannedPeripherals, connect} = useBLE();
+  const {isScanning, startScan, scannedPeripherals, connect, retrieveServices} =
+    useBLE();
 
   useEffect(() => {
-    hasBluetoothPermissions().then(() => scanPeripheral(5));
+    hasBluetoothPermissions().then(() => startScan(5));
   }, []);
 
   const peripheralList = Array.from(scannedPeripherals.values());
@@ -32,7 +32,8 @@ const FindDeviceScreen = ({navigation}: FindDeviceScreenProps) => {
           onPress={async () => {
             try {
               await connect(id);
-
+              const ser = await retrieveServices(id);
+              console.log(ser);
               navigation.navigate('Wifi', {
                 peripheralId: id,
               });
@@ -49,10 +50,9 @@ const FindDeviceScreen = ({navigation}: FindDeviceScreenProps) => {
 
   return (
     <View style={{flex: 1}}>
-      {/* {isScanning && <ActivityIndicator size={'large'} />} */}
       <FlatList
         refreshing={isScanning}
-        onRefresh={() => scanPeripheral(5)}
+        onRefresh={() => startScan(5)}
         style={{flex: 1}}
         data={peripheralList}
         renderItem={renderPeripheral}

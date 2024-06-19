@@ -1,20 +1,12 @@
 import React, {PropsWithChildren, createContext, useContext} from 'react';
-import {BleContextType} from './BleProvider.d';
 import {useBLEDevice} from '@/hooks/useBLEDevice';
 
-const BleContext = createContext<BleContextType | null>(null);
+const BleContext = createContext<ReturnType<typeof useBLEDevice> | null>(null);
 
 export const BleProvider = ({children}: PropsWithChildren) => {
   const ble = useBLEDevice();
 
-  return (
-    <BleContext.Provider
-      value={{
-        ...ble,
-      }}>
-      {children}
-    </BleContext.Provider>
-  );
+  return <BleContext.Provider value={ble}>{children}</BleContext.Provider>;
 };
 
 export const useBLE = () => {

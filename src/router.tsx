@@ -4,7 +4,7 @@ import {
   BottomTabBarProps,
   createBottomTabNavigator,
 } from '@react-navigation/bottom-tabs';
-import MyDeviceScreen from '@/screens/MyDeviceScreen';
+import MyDeviceScreen from '@/screens/MyDeviceScreen/MyDeviceScreen';
 import SettingsScreen from '@/screens/SettingsScreen';
 import {BleProvider} from './providers/BleProvider';
 import {

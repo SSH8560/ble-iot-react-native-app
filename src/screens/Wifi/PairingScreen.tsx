@@ -1,11 +1,14 @@
-import {getUser} from '@/apis/supabase/auth';
 import {postUserDevice} from '@/apis/supabase/userDevices';
+import {getCharacteristicUUID, getServiceUUID} from '@/libs/ble';
 import {useBLE} from '@/providers/BleProvider';
 import {DeviceRegistrationParams, RootStackParams} from '@/router.d';
 import {CompositeScreenProps} from '@react-navigation/native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import React, {useEffect, useState} from 'react';
 import {Text, View} from 'react-native';
+import {Buffer} from 'buffer';
+import {btyesToString, createKey} from '@/libs/utils';
+import LoadingIndicator from '@/components/LoadingIndicator';
 
 interface PairingScreenProps
   extends CompositeScreenProps<
@@ -23,10 +26,41 @@ const PairingScreen = ({
     'PAIRING' | 'REGISTERING' | 'DONE' | 'ERROR'
   >('PAIRING');
   const {
-    sendWiFiCredentials,
-    startNotificateSettingStatus,
-    readDeviceInfo: readDeviceId,
+    characteristicValues,
+    handlePressWrite,
+    handlePressNotification,
+    handlePressRead,
   } = useBLE();
+
+  const settingServiceUUID = getServiceUUID('설정');
+  const wifiCredentialCharacteristicUUID = getCharacteristicUUID('와이파이');
+  const deviceInfoCharacteristicUUID = getCharacteristicUUID('기기');
+  const connectionCharacteristicUUID = getCharacteristicUUID('연결상태');
+
+  useEffect(() => {
+    handlePressNotification({
+      peripheralId,
+      serviceUUID: settingServiceUUID,
+      characteristicUUID: connectionCharacteristicUUID,
+    });
+    return () => {};
+  }, []);
+
+  useEffect(() => {
+    const wifiConnectedBytes =
+      characteristicValues[
+        createKey(settingServiceUUID, connectionCharacteristicUUID)
+      ];
+    if (!wifiConnectedBytes) return;
+
+    const wifiConnected = btyesToString(wifiConnectedBytes);
+    if (wifiConnected !== 'connected') {
+      navigation.goBack();
+      return;
+    }
+
+    setStatus('REGISTERING');
+  }, [characteristicValues]);
 
   useEffect(() => {
     switch (status) {
@@ -45,19 +79,32 @@ const PairingScreen = ({
     }
 
     async function onPairing() {
-      sendWiFiCredentials({
+      console.log('asdsad1');
+      handlePressWrite({
         peripheralId,
-        wifiPassword,
-        wifiSsid,
+        serviceUUID: settingServiceUUID,
+        characteristicUUID: wifiCredentialCharacteristicUUID,
+        data: Array.from(Buffer.from(`${wifiSsid},${wifiPassword}`)),
       });
-      startNotificateSettingStatus(peripheralId, handleOnReceiveSettingStatus);
     }
     async function onRegistering() {
       try {
-        const {type} = await readDeviceId(peripheralId);
-        await postUserDevice({device_id: peripheralId, device_type: type});
+        const bytes = await handlePressRead({
+          peripheralId,
+          serviceUUID: settingServiceUUID,
+          characteristicUUID: deviceInfoCharacteristicUUID,
+        });
+        const [device_id, device_type] = btyesToString(bytes).split(',');
+
+        await postUserDevice({
+          peripheral_id: peripheralId,
+          device_id,
+          device_type,
+        });
+
         setStatus('DONE');
       } catch (e) {
+        console.log(e);
         navigation.navigate('MainTab');
       }
     }
@@ -85,8 +132,18 @@ const PairingScreen = ({
   };
 
   return (
-    <View>
-      <Text>{status}</Text>
+    <View style={{flex: 1}}>
+      <LoadingIndicator
+        message={
+          status === 'PAIRING'
+            ? '기기를 설정중 입니다...'
+            : status === 'REGISTERING'
+            ? '기기를 서버에 등록중 입니다...'
+            : status === 'DONE'
+            ? '등록이 완료되었습니다.'
+            : '에러가 발생했습니다.'
+        }
+      />
     </View>
   );
 };

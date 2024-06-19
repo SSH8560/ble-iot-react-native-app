@@ -6,7 +6,6 @@ import {
 } from 'react-native';
 import BleManager, {Peripheral} from 'react-native-ble-manager';
 import {hasBluetoothPermissions} from '@/libs/permissions';
-import {CHARACTERISTIC_UUIDS, SERVICE_UUIDS} from '@/libs/ble';
 
 const BleManagerModule = NativeModules.BleManager;
 const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);

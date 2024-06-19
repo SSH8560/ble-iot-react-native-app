@@ -38,7 +38,7 @@ export const CHARACTERISTICS: Characteristic[] = [
   // 설정
   {
     uuid: '1683d984-ba48-4ad4-869c-fcff86e39ce5',
-    label: '와이파이 인증정보',
+    label: '와이파이',
     serviceUuid: '3126d1ed-031f-4470-8906-3a3b90bc039a',
     valueType: 'STRING',
   },
@@ -50,7 +50,7 @@ export const CHARACTERISTICS: Characteristic[] = [
   },
   {
     uuid: 'b023daf1-980f-4c91-826d-0f0b0e3675c2',
-    label: '기기정보',
+    label: '기기',
     serviceUuid: '3126d1ed-031f-4470-8906-3a3b90bc039a',
     valueType: 'STRING',
   },
@@ -63,3 +63,21 @@ export const CHARACTERISTIC_MAP: Map<string, Characteristic> = new Map();
 CHARACTERISTICS.forEach(characteristic =>
   CHARACTERISTIC_MAP.set(characteristic.uuid, characteristic),
 );
+
+export const getServiceUUID = (label: string): string => {
+  const service = SERVICES.find(service => service.label === label);
+  if (!service) {
+    throw new Error(`Service with label "${label}" not found`);
+  }
+  return service.uuid;
+};
+
+export const getCharacteristicUUID = (label: string): string => {
+  const characteristic = CHARACTERISTICS.find(
+    ({label: characteristicLabel}) => characteristicLabel === label,
+  );
+  if (!characteristic) {
+    throw new Error(`Characteristic with label "${label}" not found`);
+  }
+  return characteristic.uuid;
+};

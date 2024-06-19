@@ -1,8 +1,8 @@
 import {SERVICE_MAP} from '@/libs/ble';
 import {RootStackParams} from '@/router.d';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import React, {useCallback, useState} from 'react';
-import {Button, Text, TextInput, View} from 'react-native';
+import React, {useCallback, useEffect, useState} from 'react';
+import {Text, View} from 'react-native';
 import Accordion, {
   AccordionContent,
   AccordionTrigger,
@@ -10,37 +10,68 @@ import Accordion, {
 import CharacteristicCard from './components/CharacteristicCard';
 import {useBLEDevice} from '@/hooks/useBLEDevice';
 import DeviceSettingHeader from './components/DeviceSettingHeader';
-import DeviceSearchIndicator from './components/DeviceSearchIndicator';
+import LoadingIndicator from '../../components/LoadingIndicator';
 import {createKey} from '@/libs/utils';
 import InputModal from './components/InputModal';
 import {Buffer} from 'buffer';
+import {PeripheralInfo} from 'react-native-ble-manager';
 interface ScaleDeviceSettingScreenProps
   extends NativeStackScreenProps<RootStackParams, 'ScaleDeviceSetting'> {}
 
 const ScaleDeviceSettingScreen = ({
   navigation,
   route: {
-    params: {device},
+    params: {
+      device: {peripheral_id: peripheralId, device_name},
+    },
   },
 }: ScaleDeviceSettingScreenProps) => {
   const {
-    isScanned,
-    isConnected,
+    connectedPeripherals,
+    scannedPeripherals,
     characteristicValues,
     notifiedCharacteristic,
+    startScan,
+    stopScan,
     connect,
     disconnect,
+    retrieveServices,
     handlePressNotification,
     handlePressRead,
     handlePressWrite,
-    peripheralInfo,
-  } = useBLEDevice(device.peripheral_id);
+  } = useBLEDevice();
   const [isInputModalOpen, setIsInputModalOpen] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const [selectedCharacteristic, setSelectedCharacteristic] = useState<{
     serviceUUID: string;
     characteristicUUID: string;
   } | null>(null);
+  const [peripheralInfo, setPeripheralInfo] = useState<PeripheralInfo | null>(
+    null,
+  );
+
+  const providedServices =
+    peripheralInfo?.services?.filter(({uuid}) => uuid.length > 32) ?? [];
+  const providedCharacteristics = peripheralInfo?.characteristics ?? [];
+  const isScanned = scannedPeripherals.has(peripheralId);
+  const isConnected = connectedPeripherals.includes(peripheralId);
+
+  useEffect(() => {
+    if (!isConnected && !isScanned) {
+      startScan(10);
+    } else {
+      stopScan();
+    }
+    if (!isScanned && isConnected) {
+      connect(peripheralId);
+    }
+  }, [isScanned, isConnected, startScan, stopScan, connect, peripheralId]);
+
+  useEffect(() => {
+    if (isConnected) {
+      retrieveServices(peripheralId).then(setPeripheralInfo);
+    }
+  }, [isConnected, retrieveServices, peripheralId]);
 
   const handleOpenModal = useCallback(
     ({
@@ -58,6 +89,7 @@ const ScaleDeviceSettingScreen = ({
   const handleWrite = useCallback(() => {
     if (selectedCharacteristic) {
       handlePressWrite({
+        peripheralId,
         serviceUUID: selectedCharacteristic.serviceUUID,
         characteristicUUID: selectedCharacteristic.characteristicUUID,
         data: Array.from(Buffer.from(inputValue)),
@@ -65,23 +97,20 @@ const ScaleDeviceSettingScreen = ({
       setIsInputModalOpen(false);
       setInputValue('');
     }
-  }, [selectedCharacteristic, inputValue, handlePressWrite]);
+  }, [peripheralId, selectedCharacteristic, inputValue, handlePressWrite]);
 
-  const providedServices =
-    peripheralInfo?.services?.filter(({uuid}) => uuid.length > 32) ?? [];
-  const providedCharacteristics = peripheralInfo?.characteristics ?? [];
-
-  if (!isConnected && !isScanned) return <DeviceSearchIndicator />;
+  if (!isConnected && !isScanned)
+    return <LoadingIndicator message="기기를 검색 중..." />;
 
   return (
     <>
       <View style={{flex: 1, gap: 16, paddingHorizontal: 10}}>
         <View style={{flex: 1}}>
           <DeviceSettingHeader
-            deviceName={device.device_name ?? device.peripheral_id}
+            deviceName={device_name ?? peripheralId}
             isConnected={isConnected}
-            onPressConnect={() => connect(device.peripheral_id)}
-            onPressDisconnect={() => disconnect(device.peripheral_id)}
+            onPressConnect={() => connect(peripheralId)}
+            onPressDisconnect={() => disconnect(peripheralId)}
             onPressGoBack={() => navigation.goBack()}
           />
           {isConnected &&
@@ -114,6 +143,7 @@ const ScaleDeviceSettingScreen = ({
                                 properties.Read &&
                                 (() =>
                                   handlePressRead({
+                                    peripheralId,
                                     serviceUUID,
                                     characteristicUUID,
                                   }))
@@ -130,9 +160,9 @@ const ScaleDeviceSettingScreen = ({
                                 properties.Notify &&
                                 (() =>
                                   handlePressNotification({
+                                    peripheralId,
                                     characteristicUUID,
                                     serviceUUID,
-                                    notified,
                                   }))
                               }
                             />

@@ -1,11 +1,11 @@
-import {useEffect, useState, useCallback} from 'react';
+import {useState, useCallback} from 'react';
 import useBLE from '@/hooks/useBLE';
-import {PeripheralInfo} from 'react-native-ble-manager';
 import {produce} from 'immer';
 import {createKey} from '@/libs/utils';
 
-export const useBLEDevice = (peripheral_id: string) => {
+export const useBLEDevice = () => {
   const {
+    isScanning,
     startScan,
     stopScan,
     scannedPeripherals,
@@ -25,74 +25,52 @@ export const useBLEDevice = (peripheral_id: string) => {
   const [notifiedCharacteristic, setNotifiedCharacteristic] = useState<
     string[]
   >([]);
-  const [peripheralInfo, setPeripheralInfo] = useState<PeripheralInfo | null>(
-    null,
-  );
-
-  const peripheralId = peripheral_id;
-  const isScanned = scannedPeripherals.has(peripheral_id);
-  const isConnected = connectedPeripherals.includes(peripheral_id);
-
-  useEffect(() => {
-    if (!isConnected && !isScanned) {
-      startScan(10);
-    } else {
-      stopScan();
-    }
-    if (!isScanned && isConnected) {
-      connect(peripheral_id);
-    }
-  }, [isScanned, isConnected, startScan, stopScan, connect, peripheral_id]);
-
-  useEffect(() => {
-    if (isConnected) {
-      retrieveServices(peripheral_id).then(setPeripheralInfo);
-    }
-  }, [isConnected, retrieveServices, peripheral_id]);
 
   const handlePressNotification = useCallback(
     ({
-      notified,
+      peripheralId,
       serviceUUID,
       characteristicUUID,
     }: {
-      notified: boolean;
+      peripheralId: string;
       serviceUUID: string;
       characteristicUUID: string;
     }) => {
       const key = createKey(serviceUUID, characteristicUUID);
-      if (notified) {
-        setNotifiedCharacteristic(prevState =>
-          prevState.filter(notifiedKey => notifiedKey !== key),
-        );
-        stopNotification({
-          peripheralId,
-          serviceUUID,
-          characteristicUUID,
-        });
-      } else {
-        setNotifiedCharacteristic(prevState => [...prevState, key]);
-        startNotification({
-          peripheralId,
-          serviceUUID,
-          characteristicUUID,
-          onUpdate(bytes) {
-            setCharacteristicValues(prevState =>
-              produce(prevState, draft => {
-                draft[key] = bytes;
-              }),
-            );
-          },
-        });
-      }
+      setNotifiedCharacteristic(prevState => {
+        if (prevState.includes(key)) {
+          stopNotification({
+            peripheralId,
+            serviceUUID,
+            characteristicUUID,
+          });
+          return prevState.filter(notifiedKey => notifiedKey !== key);
+        } else {
+          startNotification({
+            peripheralId,
+            serviceUUID,
+            characteristicUUID,
+            onUpdate(bytes) {
+              setCharacteristicValues(prevState =>
+                produce(prevState, draft => {
+                  draft[key] = bytes;
+                }),
+              );
+            },
+          });
+          return [...prevState, key];
+        }
+      });
     },
-    [peripheralId, startNotification, stopNotification],
+    [startNotification, stopNotification],
   );
   const handlePressRead = useCallback(
     async ({
+      peripheralId,
       serviceUUID,
       characteristicUUID,
     }: {
+      peripheralId: string;
       serviceUUID: string;
       characteristicUUID: string;
     }) => {
@@ -103,28 +81,34 @@ export const useBLEDevice = (peripheral_id: string) => {
           draft[key] = bytes;
         }),
       );
+      return bytes;
     },
-    [peripheralId, read],
+    [read],
   );
   const handlePressWrite = useCallback(
     async ({
+      peripheralId,
       serviceUUID,
       characteristicUUID,
       data,
     }: {
+      peripheralId: string;
       serviceUUID: string;
       characteristicUUID: string;
       data: number[];
     }) => {
       await write({peripheralId, serviceUUID, characteristicUUID, data});
     },
-    [peripheralId, write],
+    [write],
   );
 
   return {
-    isScanned,
-    isConnected,
-    peripheralInfo,
+    isScanning,
+    startScan,
+    stopScan,
+    scannedPeripherals,
+    connectedPeripherals,
+    retrieveServices,
     characteristicValues,
     notifiedCharacteristic,
     handlePressNotification,

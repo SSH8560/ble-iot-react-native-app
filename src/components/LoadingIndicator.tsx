@@ -2,9 +2,11 @@ import LottieView from 'lottie-react-native';
 import React from 'react';
 import {View, Text} from 'react-native';
 
-interface DeviceSearchIndicatorProps {}
+interface LoadingIndicatorProps {
+  message?: string;
+}
 
-const DeviceSearchIndicator = ({}: DeviceSearchIndicatorProps) => {
+const LoadingIndicator = ({message}: LoadingIndicatorProps) => {
   return (
     <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
       <LottieView
@@ -14,10 +16,10 @@ const DeviceSearchIndicator = ({}: DeviceSearchIndicatorProps) => {
         loop
       />
       <Text style={{textAlign: 'center', fontSize: 20, fontWeight: '700'}}>
-        기기를 찾고 있습니다.
+        {message}
       </Text>
     </View>
   );
 };
 
-export default DeviceSearchIndicator;
+export default LoadingIndicator;

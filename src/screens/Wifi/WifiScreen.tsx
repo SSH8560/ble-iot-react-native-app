@@ -37,7 +37,7 @@ const WifiScreen = ({
     return () => {
       disconnect(peripheralId);
     };
-  }, []);
+  }, [disconnect, peripheralId]);
 
   return (
     <View style={{padding: 16}}>
