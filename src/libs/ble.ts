@@ -38,7 +38,19 @@ export const CHARACTERISTICS: Characteristic[] = [
   // 설정
   {
     uuid: '1683d984-ba48-4ad4-869c-fcff86e39ce5',
-    label: '설정값',
+    label: '와이파이 인증정보',
+    serviceUuid: '3126d1ed-031f-4470-8906-3a3b90bc039a',
+    valueType: 'STRING',
+  },
+  {
+    uuid: '6dfba204-77ac-437b-8b5a-194d2545c587',
+    label: '연결상태',
+    serviceUuid: '3126d1ed-031f-4470-8906-3a3b90bc039a',
+    valueType: 'STRING',
+  },
+  {
+    uuid: 'b023daf1-980f-4c91-826d-0f0b0e3675c2',
+    label: '기기정보',
     serviceUuid: '3126d1ed-031f-4470-8906-3a3b90bc039a',
     valueType: 'STRING',
   },

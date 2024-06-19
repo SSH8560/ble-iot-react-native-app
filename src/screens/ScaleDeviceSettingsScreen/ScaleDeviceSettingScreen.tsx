@@ -1,15 +1,16 @@
-import Header from '@/components/Header';
-import useBLE from '@/hooks/useBLE';
-import {CHARACTERISTICS, CHARACTERISTIC_MAP, SERVICE_MAP} from '@/libs/ble';
+import {SERVICE_MAP} from '@/libs/ble';
 import {RootStackParams} from '@/router.d';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import LottieView from 'lottie-react-native';
-import React, {useEffect, useState} from 'react';
-import {Button, Switch, Text, TouchableOpacity, View} from 'react-native';
-import {PeripheralInfo} from 'react-native-ble-manager';
+import React from 'react';
+import {Text, TouchableOpacity, View} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import {produce} from 'immer';
-import {Buffer} from 'buffer';
+import Accordion, {
+  AccordionContent,
+  AccordionTrigger,
+} from '@/components/Accordion';
+import CharacteristicCard from './components/CharacteristicCard';
+import {useBLEDevice} from '@/hooks/useBLEDevice';
 interface ScaleDeviceSettingScreenProps
   extends NativeStackScreenProps<RootStackParams, 'ScaleDeviceSetting'> {}
 
@@ -20,51 +21,23 @@ const ScaleDeviceSettingScreen = ({
   },
 }: ScaleDeviceSettingScreenProps) => {
   const {
-    startScan,
-    stopScan,
-    scannedPeripherals,
-    connectedPeripherals,
-    startNotification,
-    stopNotification,
-    retrieveServices,
+    isScanned,
+    isConnected,
+    characteristicValues,
+    notifiedCharacteristic,
     connect,
     disconnect,
-  } = useBLE();
-  const [characteristicValues, setCharacteristicValues] = useState<{
-    [key: string]: number[];
-  }>({});
-  const [notifiedCharacteristic, setNotifiedCharacteristic] = useState<
-    string[]
-  >([]);
-  const [peripheralInfo, setPeripheralInfo] = useState<PeripheralInfo | null>(
-    null,
-  );
-  const peripheralId = device.peripheral_id;
-  const isScanned = scannedPeripherals.has(device.peripheral_id);
-  const isConnected = connectedPeripherals.includes(device.peripheral_id);
+    handlePressNotification,
+    handlePressRead,
+    peripheralInfo,
+  } = useBLEDevice(device.peripheral_id);
+
   const providedServices =
     peripheralInfo?.services?.filter(({uuid}) => uuid.length > 32) ?? [];
+
   const providedCharacteristics = peripheralInfo?.characteristics ?? [];
-
-  useEffect(() => {
-    if (!isConnected && !isScanned) {
-      startScan(10);
-    } else {
-      stopScan();
-    }
-    if (!isScanned && isConnected) {
-      connect(device.peripheral_id);
-    }
-  }, [isScanned, isConnected, startScan, stopScan, connect, device]);
-
-  useEffect(() => {
-    if (isConnected) {
-      retrieveServices(device.peripheral_id).then(setPeripheralInfo);
-    }
-  }, [isConnected, retrieveServices, device]);
-
   return (
-    <View style={{flex: 1, gap: 16}}>
+    <View style={{flex: 1, gap: 16, paddingHorizontal: 10}}>
       {isScanned || isConnected ? (
         <View>
           <View
@@ -97,70 +70,50 @@ const ScaleDeviceSettingScreen = ({
             peripheralInfo &&
             providedServices.map(({uuid: serviceUUID}) => {
               return (
-                <View>
-                  <Text>{SERVICE_MAP.get(serviceUUID)?.label}</Text>
-                  {providedCharacteristics
-                    .filter(({service}) => service === serviceUUID)
-                    .map(({characteristic: characteristicUUID, properties}) => {
-                      const key = createKey(serviceUUID, characteristicUUID);
-                      const handleNotificationSwitch = (value: boolean) => {
-                        if (value) {
-                          setNotifiedCharacteristic(prevState => [
-                            ...prevState,
-                            key,
-                          ]);
-                          startNotification({
-                            peripheralId,
+                <Accordion>
+                  <AccordionTrigger>
+                    <Text>{SERVICE_MAP.get(serviceUUID)?.label}</Text>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    {providedCharacteristics
+                      .filter(({service}) => service === serviceUUID)
+                      .map(
+                        ({characteristic: characteristicUUID, properties}) => {
+                          const key = createKey(
                             serviceUUID,
                             characteristicUUID,
-                            onUpdate(bytes) {
-                              setCharacteristicValues(
-                                produce(characteristicValues, draft => {
-                                  draft[key] = bytes;
-                                }),
-                              );
-                            },
-                          });
-                        } else {
-                          setNotifiedCharacteristic(prevState =>
-                            prevState.filter(
-                              notifiedKey => notifiedKey !== key,
-                            ),
                           );
-                          stopNotification({
-                            peripheralId,
-                            serviceUUID,
-                            characteristicUUID,
-                          });
-                        }
-                      };
-                      return (
-                        <View>
-                          <View style={{paddingLeft: 10, flexDirection: 'row'}}>
-                            <Text>
-                              {
-                                CHARACTERISTIC_MAP.get(characteristicUUID)
-                                  ?.label
+                          const notified = notifiedCharacteristic.includes(key);
+                          return (
+                            <CharacteristicCard
+                              key={characteristicUUID}
+                              characteristicUUID={characteristicUUID}
+                              bytesValue={characteristicValues[key] ?? null}
+                              notified={notified}
+                              onPressRead={
+                                properties.Read &&
+                                (() =>
+                                  handlePressRead({
+                                    serviceUUID,
+                                    characteristicUUID,
+                                  }))
                               }
-                            </Text>
-                            {properties.Notify && (
-                              <Switch
-                                onValueChange={handleNotificationSwitch}
-                                value={notifiedCharacteristic.includes(key)}
-                              />
-                            )}
-                          </View>
-                          {characteristicValues[key] && (
-                            <Text style={{color: '#000'}}>
-                              {Buffer.from(
-                                characteristicValues[key],
-                              ).readFloatLE()}
-                            </Text>
-                          )}
-                        </View>
-                      );
-                    })}
-                </View>
+                              onPressWrite={properties.Write && (() => {})}
+                              onPressNotify={
+                                properties.Notify &&
+                                (() =>
+                                  handlePressNotification({
+                                    characteristicUUID,
+                                    serviceUUID,
+                                    notified,
+                                  }))
+                              }
+                            />
+                          );
+                        },
+                      )}
+                  </AccordionContent>
+                </Accordion>
               );
             })}
         </View>

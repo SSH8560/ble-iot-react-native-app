@@ -156,6 +156,24 @@ const useBLE = () => {
   const disconnect = useCallback(async (peripheralId: string) => {
     await BleManager.disconnect(peripheralId);
   }, []);
+  const read = useCallback(
+    async ({
+      peripheralId,
+      serviceUUID,
+      characteristicUUID,
+    }: {
+      peripheralId: string;
+      serviceUUID: string;
+      characteristicUUID: string;
+    }) => {
+      return await BleManager.read(
+        peripheralId,
+        serviceUUID,
+        characteristicUUID,
+      );
+    },
+    [],
+  );
   const retrieveServices = useCallback(async (peripheralId: string) => {
     return await BleManager.retrieveServices(peripheralId);
   }, []);
@@ -252,6 +270,7 @@ const useBLE = () => {
     disconnect,
     retrieveServices,
     write,
+    read,
     stopNotification,
     startNotification,
   };

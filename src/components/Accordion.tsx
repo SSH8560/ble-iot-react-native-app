@@ -47,7 +47,7 @@ export const AccordionContent = ({children}: AccordionContentProps) => {
 
   if (!open) return null;
 
-  return <View>children</View>;
+  return <View>{children}</View>;
 };
 
 export default Accordion;
