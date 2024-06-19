@@ -27,7 +27,7 @@ export const useBLEDevice = () => {
   >([]);
 
   const handlePressNotification = useCallback(
-    ({
+    async ({
       peripheralId,
       serviceUUID,
       characteristicUUID,
@@ -37,32 +37,33 @@ export const useBLEDevice = () => {
       characteristicUUID: string;
     }) => {
       const key = createKey(serviceUUID, characteristicUUID);
-      setNotifiedCharacteristic(prevState => {
-        if (prevState.includes(key)) {
-          stopNotification({
-            peripheralId,
-            serviceUUID,
-            characteristicUUID,
-          });
-          return prevState.filter(notifiedKey => notifiedKey !== key);
-        } else {
-          startNotification({
-            peripheralId,
-            serviceUUID,
-            characteristicUUID,
-            onUpdate(bytes) {
-              setCharacteristicValues(prevState =>
-                produce(prevState, draft => {
-                  draft[key] = bytes;
-                }),
-              );
-            },
-          });
-          return [...prevState, key];
-        }
-      });
+      const isNotifying = notifiedCharacteristic.includes(key);
+      if (isNotifying) {
+        await stopNotification({
+          peripheralId,
+          serviceUUID,
+          characteristicUUID,
+        });
+        setNotifiedCharacteristic(
+          notifiedCharacteristic.filter(notifiedKey => notifiedKey !== key),
+        );
+      } else {
+        await startNotification({
+          peripheralId,
+          serviceUUID,
+          characteristicUUID,
+          onUpdate(bytes) {
+            setCharacteristicValues(prevState =>
+              produce(prevState, draft => {
+                draft[key] = bytes;
+              }),
+            );
+          },
+        });
+        setNotifiedCharacteristic([...notifiedCharacteristic, key]);
+      }
     },
-    [startNotification, stopNotification],
+    [notifiedCharacteristic, startNotification, stopNotification],
   );
   const handlePressRead = useCallback(
     async ({

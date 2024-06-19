@@ -6,15 +6,15 @@ import {
 } from '@react-navigation/bottom-tabs';
 import MyDeviceScreen from '@/screens/MyDeviceScreen/MyDeviceScreen';
 import SettingsScreen from '@/screens/SettingsScreen';
-import {BleProvider} from './providers/BleProvider';
+import {BLEProvider} from './providers/BLEProvider';
 import {
   DeviceRegistrationParams,
   MainTabParams,
   RootStackParams,
 } from '@/router.d';
-import FindDeviceScreen from './screens/Wifi/FindDeviceScreen';
-import WifiScreen from './screens/Wifi/WifiScreen';
-import PairingScreen from './screens/Wifi/PairingScreen';
+import FindDeviceScreen from './screens/DeviceRegistration/FindDeviceScreen';
+import WifiScreen from './screens/DeviceRegistration/WifiScreen';
+import PairingScreen from './screens/DeviceRegistration/PairingScreen';
 import ScaleDeviceDetailScreen from './screens/ScaleDeviceDetailScreen';
 import SpalshScreen from './screens/SplashScreen';
 import MainBottomTabBar from './components/MainBottomTabBar';
@@ -28,7 +28,7 @@ const BottomTab = createBottomTabNavigator<MainTabParams>();
 
 const DeviceRegistration = () => {
   return (
-    <BleProvider>
+    <BLEProvider>
       <DeviceRegistrationStack.Navigator>
         <DeviceRegistrationStack.Screen
           name="FindDevice"
@@ -40,7 +40,7 @@ const DeviceRegistration = () => {
           component={PairingScreen}
         />
       </DeviceRegistrationStack.Navigator>
-    </BleProvider>
+    </BLEProvider>
   );
 };
 

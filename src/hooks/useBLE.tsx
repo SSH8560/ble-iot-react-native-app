@@ -186,7 +186,7 @@ const useBLE = () => {
       serviceUUID: string;
       characteristicUUID: string;
     }) => {
-      BleManager.stopNotification(
+      await BleManager.stopNotification(
         peripheralId,
         serviceUUID,
         characteristicUUID,

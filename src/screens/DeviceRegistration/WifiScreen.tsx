@@ -13,7 +13,7 @@ import WifiManager from 'react-native-wifi-reborn';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {DeviceRegistrationParams} from '@/router.d';
-import {useBLE} from '@/providers/BleProvider';
+import {useBLE} from '@/providers/BLEProvider';
 interface WifiScreenProps
   extends NativeStackScreenProps<DeviceRegistrationParams, 'Wifi'> {}
 

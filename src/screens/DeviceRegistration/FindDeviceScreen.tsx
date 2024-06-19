@@ -1,5 +1,5 @@
 import {hasBluetoothPermissions} from '@/libs/permissions';
-import {useBLE} from '@/providers/BleProvider';
+import {useBLE} from '@/providers/BLEProvider';
 import {DeviceRegistrationParams} from '@/router.d';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import React, {useCallback, useEffect} from 'react';

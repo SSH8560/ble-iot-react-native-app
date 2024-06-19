@@ -3,7 +3,7 @@ import {useBLEDevice} from '@/hooks/useBLEDevice';
 
 const BleContext = createContext<ReturnType<typeof useBLEDevice> | null>(null);
 
-export const BleProvider = ({children}: PropsWithChildren) => {
+export const BLEProvider = ({children}: PropsWithChildren) => {
   const ble = useBLEDevice();
 
   return <BleContext.Provider value={ble}>{children}</BleContext.Provider>;
