@@ -74,7 +74,6 @@ const useBLE = () => {
       service: string;
     }) => {
       try {
-        console.log(handlerMapRef.current);
         const handlerKey = createKey({peripheral, service, characteristic});
         const handler = handlerMapRef.current.get(handlerKey);
 

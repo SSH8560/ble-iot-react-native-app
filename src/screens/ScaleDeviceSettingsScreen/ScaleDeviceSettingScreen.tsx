@@ -1,13 +1,15 @@
 import Header from '@/components/Header';
 import useBLE from '@/hooks/useBLE';
+import {CHARACTERISTICS, CHARACTERISTIC_MAP, SERVICE_MAP} from '@/libs/ble';
 import {RootStackParams} from '@/router.d';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import LottieView from 'lottie-react-native';
 import React, {useEffect, useState} from 'react';
-import {Button, Text, TouchableOpacity, View} from 'react-native';
+import {Button, Switch, Text, TouchableOpacity, View} from 'react-native';
 import {PeripheralInfo} from 'react-native-ble-manager';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-
+import {produce} from 'immer';
+import {Buffer} from 'buffer';
 interface ScaleDeviceSettingScreenProps
   extends NativeStackScreenProps<RootStackParams, 'ScaleDeviceSetting'> {}
 
@@ -23,14 +25,21 @@ const ScaleDeviceSettingScreen = ({
     scannedPeripherals,
     connectedPeripherals,
     startNotification,
+    stopNotification,
     retrieveServices,
     connect,
     disconnect,
   } = useBLE();
-  const [scaleValue, setScaleValue] = useState(0);
+  const [characteristicValues, setCharacteristicValues] = useState<{
+    [key: string]: number[];
+  }>({});
+  const [notifiedCharacteristic, setNotifiedCharacteristic] = useState<
+    string[]
+  >([]);
   const [peripheralInfo, setPeripheralInfo] = useState<PeripheralInfo | null>(
     null,
   );
+  const peripheralId = device.peripheral_id;
   const isScanned = scannedPeripherals.has(device.peripheral_id);
   const isConnected = connectedPeripherals.includes(device.peripheral_id);
   const providedServices =
@@ -89,13 +98,65 @@ const ScaleDeviceSettingScreen = ({
             providedServices.map(({uuid: serviceUUID}) => {
               return (
                 <View>
-                  <Text>{serviceUUID}</Text>
+                  <Text>{SERVICE_MAP.get(serviceUUID)?.label}</Text>
                   {providedCharacteristics
                     .filter(({service}) => service === serviceUUID)
-                    .map(({characteristic}) => {
+                    .map(({characteristic: characteristicUUID, properties}) => {
+                      const key = createKey(serviceUUID, characteristicUUID);
+                      const handleNotificationSwitch = (value: boolean) => {
+                        if (value) {
+                          setNotifiedCharacteristic(prevState => [
+                            ...prevState,
+                            key,
+                          ]);
+                          startNotification({
+                            peripheralId,
+                            serviceUUID,
+                            characteristicUUID,
+                            onUpdate(bytes) {
+                              setCharacteristicValues(
+                                produce(characteristicValues, draft => {
+                                  draft[key] = bytes;
+                                }),
+                              );
+                            },
+                          });
+                        } else {
+                          setNotifiedCharacteristic(prevState =>
+                            prevState.filter(
+                              notifiedKey => notifiedKey !== key,
+                            ),
+                          );
+                          stopNotification({
+                            peripheralId,
+                            serviceUUID,
+                            characteristicUUID,
+                          });
+                        }
+                      };
                       return (
-                        <View style={{paddingLeft: 10}}>
-                          <Text>{characteristic}</Text>
+                        <View>
+                          <View style={{paddingLeft: 10, flexDirection: 'row'}}>
+                            <Text>
+                              {
+                                CHARACTERISTIC_MAP.get(characteristicUUID)
+                                  ?.label
+                              }
+                            </Text>
+                            {properties.Notify && (
+                              <Switch
+                                onValueChange={handleNotificationSwitch}
+                                value={notifiedCharacteristic.includes(key)}
+                              />
+                            )}
+                          </View>
+                          {characteristicValues[key] && (
+                            <Text style={{color: '#000'}}>
+                              {Buffer.from(
+                                characteristicValues[key],
+                              ).readFloatLE()}
+                            </Text>
+                          )}
                         </View>
                       );
                     })}
@@ -118,6 +179,10 @@ const ScaleDeviceSettingScreen = ({
       )}
     </View>
   );
+};
+
+const createKey = (serviceUUID: string, characteristicUUID: string) => {
+  return `${serviceUUID}_${characteristicUUID}`;
 };
 
 export default ScaleDeviceSettingScreen;

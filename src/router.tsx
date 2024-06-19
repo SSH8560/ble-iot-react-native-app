@@ -19,7 +19,7 @@ import ScaleDeviceDetailScreen from './screens/ScaleDeviceDetailScreen';
 import SpalshScreen from './screens/SplashScreen';
 import MainBottomTabBar from './components/MainBottomTabBar';
 import SignInScreen from './screens/SignInScreen';
-import ScaleDeviceSettingScreen from './screens/ScaleDeviceSettingScreen';
+import ScaleDeviceSettingScreen from './screens/ScaleDeviceSettingsScreen/ScaleDeviceSettingScreen';
 
 const Stack = createNativeStackNavigator<RootStackParams>();
 const DeviceRegistrationStack =
