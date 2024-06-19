@@ -1,10 +1,11 @@
 import React, {PropsWithChildren, createContext, useContext} from 'react';
 import {BleContextType} from './BleProvider.d';
+import {useBLEDevice} from '@/hooks/useBLEDevice';
 
 const BleContext = createContext<BleContextType | null>(null);
 
 export const BleProvider = ({children}: PropsWithChildren) => {
-  const ble = useBLE();
+  const ble = useBLEDevice();
 
   return (
     <BleContext.Provider

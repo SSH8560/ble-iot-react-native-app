@@ -58,7 +58,7 @@ const CharacteristicCard = ({
 
 const IconButton = ({name, onPress}: {name: string; onPress: () => void}) => {
   return (
-    <TouchableOpacity style={{width: 40, height: 40}} onPress={onPress}>
+    <TouchableOpacity onPress={onPress} style={{width: 40, height: 40}}>
       <Icon name={name} size={28} />
     </TouchableOpacity>
   );
@@ -71,9 +71,14 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
   },
   label: {fontSize: 18},
-  controllerContainer: {flexDirection: 'row'},
+  controllerContainer: {
+    flexDirection: 'row',
+    width: 120,
+    justifyContent: 'flex-start',
+  },
   content: {},
 });
 

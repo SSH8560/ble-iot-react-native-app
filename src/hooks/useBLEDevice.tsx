@@ -15,6 +15,7 @@ export const useBLEDevice = (peripheral_id: string) => {
     retrieveServices,
     connect,
     read,
+    write,
     disconnect,
   } = useBLE();
 
@@ -87,7 +88,6 @@ export const useBLEDevice = (peripheral_id: string) => {
     },
     [peripheralId, startNotification, stopNotification],
   );
-
   const handlePressRead = useCallback(
     async ({
       serviceUUID,
@@ -106,6 +106,20 @@ export const useBLEDevice = (peripheral_id: string) => {
     },
     [peripheralId, read],
   );
+  const handlePressWrite = useCallback(
+    async ({
+      serviceUUID,
+      characteristicUUID,
+      data,
+    }: {
+      serviceUUID: string;
+      characteristicUUID: string;
+      data: number[];
+    }) => {
+      await write({peripheralId, serviceUUID, characteristicUUID, data});
+    },
+    [peripheralId, write],
+  );
 
   return {
     isScanned,
@@ -115,6 +129,7 @@ export const useBLEDevice = (peripheral_id: string) => {
     notifiedCharacteristic,
     handlePressNotification,
     handlePressRead,
+    handlePressWrite,
     connect,
     disconnect,
   };
