@@ -117,7 +117,7 @@ const ScaleDeviceSettingScreen = ({
             peripheralInfo &&
             providedServices.map(({uuid: serviceUUID}) => {
               return (
-                <Accordion>
+                <Accordion key={serviceUUID}>
                   <AccordionTrigger>
                     <Text style={{fontSize: 18, fontWeight: 'bold'}}>
                       {SERVICE_MAP.get(serviceUUID)?.label}

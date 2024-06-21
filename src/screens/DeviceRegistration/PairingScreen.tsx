@@ -125,13 +125,8 @@ const PairingScreen = ({
     } else {
       handleRegistering();
     }
-  }, [
-    handleError,
-    handleRegistering,
-    characteristicValues,
-    connectionCharacteristicUUID,
-    settingServiceUUID,
-  ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [characteristicValues]);
 
   return (
     <View style={{flex: 1}}>

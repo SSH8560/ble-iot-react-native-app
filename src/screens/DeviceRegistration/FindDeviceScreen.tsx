@@ -1,3 +1,4 @@
+import {getServiceUUID} from '@/libs/ble';
 import {hasBluetoothPermissions} from '@/libs/permissions';
 import {useBLE} from '@/providers/BLEProvider';
 import {DeviceRegistrationParams} from '@/router.d';
@@ -16,24 +17,36 @@ interface FindDeviceScreenProps
   extends NativeStackScreenProps<DeviceRegistrationParams, 'FindDevice'> {}
 
 const FindDeviceScreen = ({navigation}: FindDeviceScreenProps) => {
-  const {isScanning, startScan, scannedPeripherals, connect, retrieveServices} =
-    useBLE();
+  const {
+    isScanning,
+    startScan,
+    stopScan,
+    scannedPeripherals,
+    connect,
+    retrieveServices,
+  } = useBLE();
 
   useEffect(() => {
     hasBluetoothPermissions().then(() => startScan(5));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const peripheralList = Array.from(scannedPeripherals.values());
+  const peripheralList = Array.from(scannedPeripherals.values()).filter(
+    ({advertising: {serviceUUIDs}}) => {
+      return serviceUUIDs?.includes(getServiceUUID('설정'));
+    },
+  );
 
   const renderPeripheral: ListRenderItem<Peripheral> = useCallback(
     ({item: {id, name}}) => {
       return (
         <TouchableOpacity
+          style={{height: 40, paddingHorizontal: 10, justifyContent: 'center'}}
           onPress={async () => {
             try {
+              stopScan();
               await connect(id);
-              const ser = await retrieveServices(id);
-              console.log(ser);
+              await retrieveServices(id);
               navigation.navigate('Wifi', {
                 peripheralId: id,
               });
@@ -41,11 +54,11 @@ const FindDeviceScreen = ({navigation}: FindDeviceScreenProps) => {
               throw e;
             }
           }}>
-          <Text style={{color: 'black'}}>{name}</Text>
+          <Text style={{fontSize: 18, fontWeight: '700'}}>{name}</Text>
         </TouchableOpacity>
       );
     },
-    [],
+    [connect, stopScan, navigation, retrieveServices],
   );
 
   return (

@@ -98,9 +98,7 @@ const useBLE = () => {
     async function init() {
       if (!(await hasBluetoothPermissions())) return;
 
-      await BleManager.start({showAlert: false}).then(() =>
-        console.log('BleManager started'),
-      );
+      await BleManager.start({showAlert: false});
 
       BleManager.getConnectedPeripherals().then(value => {
         const peripheralIds = value.map(peripheral => peripheral.id);
@@ -143,6 +141,8 @@ const useBLE = () => {
           .forEach(peripheralId => BleManager.disconnect(peripheralId));
       });
     };
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const connect = useCallback(async (peripheralId: string) => {
