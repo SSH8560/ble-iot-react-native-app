@@ -10,6 +10,7 @@ import ScaleLineChart from '@/components/ScaleLineChart';
 import dayjs from 'dayjs';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import Header from '@/components/Header';
+import {addDays, startOfDay} from 'date-fns';
 
 interface ScaleDeviceDetailScreenProps
   extends NativeStackScreenProps<RootStackParams, 'ScaleDeviceDetail'> {}
@@ -29,9 +30,8 @@ const ScaleDeviceDetailScreen = ({
     getScaleDeviceValues(device_id, {date}).then(setScaleValues);
   }, [device_id, date]);
 
-  const dayjsDate = dayjs(date);
-  const startOfDay = dayjsDate.startOf('day').toDate();
-  const endOfDay = dayjsDate.add(1, 'day').startOf('day').toDate();
+  const startOfDate = startOfDay(date);
+  const endOfDate = startOfDay(addDays(startOfDate, 1));
 
   return (
     <View style={{width: '100%', height: 500}}>
@@ -50,7 +50,7 @@ const ScaleDeviceDetailScreen = ({
       <ScaleLineChart
         data={scaleValues}
         yDomain={[-100, 500]}
-        xDomain={[startOfDay, endOfDay]}
+        xDomain={[startOfDate, endOfDate]}
       />
     </View>
   );

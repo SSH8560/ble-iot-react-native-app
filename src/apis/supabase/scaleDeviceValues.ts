@@ -1,5 +1,6 @@
 import dayjs from 'dayjs';
 import {supabase} from './supabase';
+import {endOfDay, startOfDay} from 'date-fns';
 
 const RELATION = 'scale_device_values';
 
@@ -15,9 +16,12 @@ export const getScaleDeviceValues = async (
   if (options) {
     const {date} = options;
     if (date) {
-      const startOfDate = dayjs(date).startOf('day').toISOString();
-      const endOfDate = dayjs(date).add(1, 'day').startOf('day').toISOString();
-      query = query.gte('created_at', startOfDate).lte('created_at', endOfDate);
+      const startOfDate = startOfDay(date).toISOString();
+      const endOfDate = endOfDay(date).toISOString();
+      query = query
+        .gte('created_at', startOfDate)
+        .lte('created_at', endOfDate)
+        .order('created_at', {ascending: true});
     }
   }
 
