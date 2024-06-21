@@ -7,6 +7,9 @@ import {
 } from '@react-navigation/native';
 import Router from './src/router';
 import {Appearance, useColorScheme} from 'react-native';
+import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
+
+const queryClient = new QueryClient();
 
 const App = () => {
   useEffect(() => {
@@ -27,9 +30,11 @@ const App = () => {
         };
 
   return (
-    <NavigationContainer theme={theme}>
-      <Router />
-    </NavigationContainer>
+    <QueryClientProvider client={queryClient}>
+      <NavigationContainer theme={theme}>
+        <Router />
+      </NavigationContainer>
+    </QueryClientProvider>
   );
 };
 

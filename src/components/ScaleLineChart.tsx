@@ -93,6 +93,7 @@ const ScaleLineChart = ({
 
   const linePath = Skia.Path.MakeFromSVGString(curvedLine);
   if (!linePath) return null;
+  if (!font) return null;
 
   return (
     <View
@@ -121,8 +122,8 @@ const ScaleLineChart = ({
                 </Path>
                 <Text
                   key={label}
-                  x={xMargin + maxYAxisWidth - font!.measureText(label).width}
-                  y={y(value) + font!.measureText(label).height / 2}
+                  x={xMargin + maxYAxisWidth - font.measureText(label).width}
+                  y={y(value) + font.measureText(label).height / 2}
                   font={font}
                   text={label}
                   color="#000"

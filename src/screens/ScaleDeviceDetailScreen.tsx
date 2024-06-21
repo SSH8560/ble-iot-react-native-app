@@ -11,6 +11,7 @@ import dayjs from 'dayjs';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import Header from '@/components/Header';
 import {addDays, startOfDay} from 'date-fns';
+import {QueryFunctionContext, useQuery} from '@tanstack/react-query';
 
 interface ScaleDeviceDetailScreenProps
   extends NativeStackScreenProps<RootStackParams, 'ScaleDeviceDetail'> {}
@@ -23,14 +24,17 @@ const ScaleDeviceDetailScreen = ({
 }: ScaleDeviceDetailScreenProps) => {
   const {device_id} = device;
 
-  const [date, setDate] = useState<Date>(new Date());
-  const [scaleValues, setScaleValues] = useState<SimpleScaleDeviceValue[]>([]);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const {data} = useQuery({
+    queryKey: ['scaleDeviceValues', {date: selectedDate}],
+    queryFn: async ({
+      queryKey: [_key, {date}],
+    }: QueryFunctionContext<[string, {date: Date}]>) => {
+      return await getScaleDeviceValues(device_id, {date});
+    },
+  });
 
-  useEffect(() => {
-    getScaleDeviceValues(device_id, {date}).then(setScaleValues);
-  }, [device_id, date]);
-
-  const startOfDate = startOfDay(date);
+  const startOfDate = startOfDay(selectedDate);
   const endOfDate = startOfDay(addDays(startOfDate, 1));
 
   return (
@@ -43,15 +47,17 @@ const ScaleDeviceDetailScreen = ({
         onPressRight={() => navigation.navigate('ScaleDeviceSetting', {device})}
       />
       <DateController
-        date={date}
-        onPressNextDay={setDate}
-        onPressPrevDay={setDate}
+        date={selectedDate}
+        onPressNextDay={setSelectedDate}
+        onPressPrevDay={setSelectedDate}
       />
-      <ScaleLineChart
-        data={scaleValues}
-        yDomain={[-100, 500]}
-        xDomain={[startOfDate, endOfDate]}
-      />
+      {data && (
+        <ScaleLineChart
+          data={data}
+          yDomain={[-100, 500]}
+          xDomain={[startOfDate, endOfDate]}
+        />
+      )}
     </View>
   );
 };
