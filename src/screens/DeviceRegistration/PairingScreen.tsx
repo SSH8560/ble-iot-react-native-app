@@ -1,14 +1,14 @@
 import {postUserDevice} from '@/apis/supabase/userDevices';
-import {useBLE} from '@/providers/BLEProvider';
+import {useBLEContext} from '@/providers/BLEProvider';
 import {DeviceRegistrationParams, RootStackParams} from '@/router.d';
 import {CompositeScreenProps} from '@react-navigation/native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import React, {useCallback, useEffect, useState} from 'react';
 import {Buffer} from 'buffer';
-import {btyesToString, createKey} from '@/libs/utils';
+import {bytesToString, createKey, stringToBytes} from '@/libs/utils';
 import LoadingIndicator from '@/components/LoadingIndicator';
 import {View} from 'react-native';
-import useUUIDs from '@/hooks/useUUIDs';
+import useUUIDs from '@/hooks/ble/useUUIDs';
 
 type Status = 'INITIATING' | 'PAIRING' | 'REGISTERING' | 'DONE' | 'ERROR';
 
@@ -30,7 +30,7 @@ const PairingScreen = ({
     handlePressWrite,
     handlePressNotification,
     handlePressRead,
-  } = useBLE();
+  } = useBLEContext();
   const {
     settingServiceUUID,
     connectionCharacteristicUUID,
@@ -56,7 +56,7 @@ const PairingScreen = ({
         serviceUUID: settingServiceUUID,
         characteristicUUID: deviceInfoCharacteristicUUID,
       });
-      const [device_id, device_type] = btyesToString(bytes).split(',');
+      const [device_id, device_type] = bytesToString(bytes).split(',');
 
       await postUserDevice({
         peripheral_id: peripheralId,
@@ -82,7 +82,7 @@ const PairingScreen = ({
       peripheralId,
       serviceUUID: settingServiceUUID,
       characteristicUUID: wifiCredentialCharacteristicUUID,
-      data: Array.from(Buffer.from(`${wifiSsid},${wifiPassword}`)),
+      data: stringToBytes(`${wifiSsid},${wifiPassword}`),
     });
   }, [
     handlePressWrite,
@@ -119,7 +119,7 @@ const PairingScreen = ({
       ];
     if (!wifiConnectedBytes) return;
 
-    const wifiConnected = btyesToString(wifiConnectedBytes);
+    const wifiConnected = bytesToString(wifiConnectedBytes);
     if (wifiConnected !== 'connected') {
       handleError();
     } else {

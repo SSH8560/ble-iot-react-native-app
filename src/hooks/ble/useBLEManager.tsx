@@ -6,6 +6,7 @@ import {
 } from 'react-native';
 import BleManager, {Peripheral} from 'react-native-ble-manager';
 import {hasBluetoothPermissions} from '@/libs/permissions';
+import {useBLEContext} from '@/providers/BLEProvider';
 
 const BleManagerModule = NativeModules.BleManager;
 const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
@@ -22,8 +23,8 @@ const createKey = ({
   return `${peripheral}_${service}_${characteristic}`;
 };
 
-const useBLE = () => {
-  const handlerMapRef = useRef(new Map<string, (bytes: number[]) => void>());
+const useBLEManager = () => {
+  const {handlerMap} = useBLEContext();
   const emitterSubscriptions = useRef<EmitterSubscription[]>([]);
   const [isScanning, setIsScanning] = useState(false);
   const [scannedPeripherals, setScannedPeripherals] = useState<
@@ -56,10 +57,9 @@ const useBLE = () => {
         : new Map(prevState.set(peripheral.id, peripheral)),
     );
   }, []);
-  const handleStopScan = ({}: {status: number}) => {
-    console.log('End scanning');
+  const handleStopScan = useCallback(({}: {status: number}) => {
     setIsScanning(false);
-  };
+  }, []);
   const handleUpdateValueForCharacteristic = useCallback(
     ({
       value,
@@ -74,7 +74,7 @@ const useBLE = () => {
     }) => {
       try {
         const handlerKey = createKey({peripheral, service, characteristic});
-        const handler = handlerMapRef.current.get(handlerKey);
+        const handler = handlerMap.current.get(handlerKey);
 
         if (!handler)
           throw new Error(
@@ -85,7 +85,7 @@ const useBLE = () => {
         handler(value);
       } catch (e) {
         console.log(e);
-        console.log(handlerMapRef.current);
+        console.log(handlerMap.current);
       }
     },
     [],
@@ -155,103 +155,17 @@ const useBLE = () => {
   const disconnect = useCallback(async (peripheralId: string) => {
     await BleManager.disconnect(peripheralId);
   }, []);
-  const read = useCallback(
-    async ({
-      peripheralId,
-      serviceUUID,
-      characteristicUUID,
-    }: {
-      peripheralId: string;
-      serviceUUID: string;
-      characteristicUUID: string;
-    }) => {
-      return await BleManager.read(
-        peripheralId,
-        serviceUUID,
-        characteristicUUID,
-      );
-    },
-    [],
-  );
   const retrieveServices = useCallback(async (peripheralId: string) => {
     return await BleManager.retrieveServices(peripheralId);
   }, []);
-  const stopNotification = useCallback(
-    async ({
-      peripheralId,
-      serviceUUID,
-      characteristicUUID,
-    }: {
-      peripheralId: string;
-      serviceUUID: string;
-      characteristicUUID: string;
-    }) => {
-      await BleManager.stopNotification(
-        peripheralId,
-        serviceUUID,
-        characteristicUUID,
-      );
-    },
-    [],
-  );
-  const startNotification = useCallback(
-    async ({
-      peripheralId,
-      serviceUUID,
-      characteristicUUID,
-      onUpdate,
-    }: {
-      peripheralId: string;
-      serviceUUID: string;
-      characteristicUUID: string;
-      onUpdate: (bytes: number[]) => void;
-    }) => {
-      await BleManager.startNotification(
-        peripheralId,
-        serviceUUID,
-        characteristicUUID,
-      );
-      handlerMapRef.current.set(
-        createKey({
-          peripheral: peripheralId,
-          service: serviceUUID,
-          characteristic: characteristicUUID,
-        }),
-        onUpdate,
-      );
-    },
-    [],
-  );
-  const write = useCallback(
-    async ({
-      peripheralId,
-      serviceUUID,
-      characteristicUUID,
-      data,
-    }: {
-      peripheralId: string;
-      serviceUUID: string;
-      characteristicUUID: string;
-      data: number[];
-    }) => {
-      await BleManager.write(
-        peripheralId,
-        serviceUUID,
-        characteristicUUID,
-        data,
-        247,
-      );
-    },
-    [],
-  );
   const startScan = useCallback(
-    async (duration: number) => {
+    async (serviceUUIDs: string[], duration: number) => {
       if (isScanning) return;
 
       console.log('Start scanning...');
       setIsScanning(true);
       setScannedPeripherals(new Map());
-      BleManager.scan([], duration, false);
+      BleManager.scan(serviceUUIDs, duration, false);
     },
     [isScanning],
   );
@@ -268,11 +182,7 @@ const useBLE = () => {
     connect,
     disconnect,
     retrieveServices,
-    write,
-    read,
-    stopNotification,
-    startNotification,
   };
 };
 
-export default useBLE;
+export default useBLEManager;

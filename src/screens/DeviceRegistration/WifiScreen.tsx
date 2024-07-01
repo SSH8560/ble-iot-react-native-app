@@ -13,7 +13,7 @@ import WifiManager from 'react-native-wifi-reborn';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {DeviceRegistrationParams} from '@/router.d';
-import {useBLE} from '@/providers/BLEProvider';
+import {useBLEContext} from '@/providers/BLEProvider';
 interface WifiScreenProps
   extends NativeStackScreenProps<DeviceRegistrationParams, 'Wifi'> {}
 
@@ -23,7 +23,7 @@ const WifiScreen = ({
   },
   navigation,
 }: WifiScreenProps) => {
-  const {disconnect} = useBLE();
+  const {disconnect} = useBLEContext();
   const [wifiSsid, setWifiSsid] = useState<string>('');
   const [wifiPassword, setWifiPassword] = useState<string>('');
   useEffect(() => {

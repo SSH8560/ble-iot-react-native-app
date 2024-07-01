@@ -1,17 +1,33 @@
-import React, {PropsWithChildren, createContext, useContext} from 'react';
-import {useBLEDevice} from '@/hooks/useBLEDevice';
+import React, {
+  PropsWithChildren,
+  createContext,
+  useContext,
+  useRef,
+} from 'react';
 
-const BleContext = createContext<ReturnType<typeof useBLEDevice> | null>(null);
+type HandlerMap = Map<string, (bytes: number[]) => void>;
+const BLEContext = createContext<{
+  handlerMap: HandlerMap;
+}>({
+  handlerMap: new Map(),
+});
 
 export const BLEProvider = ({children}: PropsWithChildren) => {
-  const ble = useBLEDevice();
+  const handlerMapRef = useRef(new Map<string, (bytes: number[]) => void>());
 
-  return <BleContext.Provider value={ble}>{children}</BleContext.Provider>;
+  return (
+    <BLEContext.Provider
+      value={{
+        handlerMap: handlerMapRef.current,
+      }}>
+      {children}
+    </BLEContext.Provider>
+  );
 };
 
-export const useBLE = () => {
-  const context = useContext(BleContext);
-  if (!context) throw new Error('BleProvider안에서 사용해주세요');
+export const useBLEContext = () => {
+  const context = useContext(BLEContext);
+  if (!context) throw new Error('BLEProvider안에서 사용해주세요');
 
   return context;
 };

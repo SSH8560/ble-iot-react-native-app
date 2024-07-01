@@ -8,7 +8,7 @@ import Accordion, {
   AccordionTrigger,
 } from '@/components/Accordion';
 import CharacteristicCard from './components/CharacteristicCard';
-import {useBLEDevice} from '@/hooks/useBLEDevice';
+import {useBLEDevice} from '@/hooks/ble/useBLEDevice';
 import DeviceSettingHeader from './components/DeviceSettingHeader';
 import LoadingIndicator from '../../components/LoadingIndicator';
 import {createKey} from '@/libs/utils';

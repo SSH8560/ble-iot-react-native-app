@@ -1,6 +1,6 @@
 import {getServiceUUID} from '@/libs/ble';
 import {hasBluetoothPermissions} from '@/libs/permissions';
-import {useBLE} from '@/providers/BLEProvider';
+import {useBLEContext} from '@/providers/BLEProvider';
 import {DeviceRegistrationParams} from '@/router.d';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import React, {useCallback, useEffect} from 'react';
@@ -24,7 +24,7 @@ const FindDeviceScreen = ({navigation}: FindDeviceScreenProps) => {
     scannedPeripherals,
     connect,
     retrieveServices,
-  } = useBLE();
+  } = useBLEContext();
 
   useEffect(() => {
     hasBluetoothPermissions().then(() => startScan(5));

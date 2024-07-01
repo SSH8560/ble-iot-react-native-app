@@ -1,5 +1,5 @@
 import {useState, useCallback} from 'react';
-import useBLE from '@/hooks/useBLE';
+import useBLE from '@/hooks/ble/useBLE';
 import {produce} from 'immer';
 import {createKey} from '@/libs/utils';
 
