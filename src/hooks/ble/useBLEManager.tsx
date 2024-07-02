@@ -11,18 +11,6 @@ import {useBLEContext} from '@/providers/BLEProvider';
 const BleManagerModule = NativeModules.BleManager;
 const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
 
-const createKey = ({
-  peripheral,
-  service,
-  characteristic,
-}: {
-  peripheral: string;
-  service: string;
-  characteristic: string;
-}): string => {
-  return `${peripheral}_${service}_${characteristic}`;
-};
-
 const useBLEManager = () => {
   const {handlerMap} = useBLEContext();
   const emitterSubscriptions = useRef<EmitterSubscription[]>([]);
