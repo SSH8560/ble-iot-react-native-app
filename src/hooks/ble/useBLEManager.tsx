@@ -7,12 +7,19 @@ import {
 import BleManager, {Peripheral} from 'react-native-ble-manager';
 import {hasBluetoothPermissions} from '@/libs/permissions';
 import {useBLEContext} from '@/providers/BLEProvider';
+import {createHandlerKey} from '@/libs/utils';
+
+type BLECharacteristicIdentifier = {
+  peripheralId: string;
+  serviceUUID: string;
+  characteristicUUID: string;
+};
 
 const BleManagerModule = NativeModules.BleManager;
 const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
 
 const useBLEManager = () => {
-  const {handlerMap} = useBLEContext();
+  const handlerMap = useRef<Map<string, (bytes: number[]) => void>>(new Map());
   const emitterSubscriptions = useRef<EmitterSubscription[]>([]);
   const [isScanning, setIsScanning] = useState(false);
   const [scannedPeripherals, setScannedPeripherals] = useState<
@@ -61,19 +68,22 @@ const useBLEManager = () => {
       service: string;
     }) => {
       try {
-        const handlerKey = createKey({peripheral, service, characteristic});
+        const handlerKey = createHandlerKey({
+          peripheral,
+          service,
+          characteristic,
+        });
         const handler = handlerMap.current.get(handlerKey);
 
         if (!handler)
           throw new Error(
-            `실행할 함수가 없습니다. 
+            `Handler Not Found For. 
             key:${handlerKey}`,
           );
 
         handler(value);
       } catch (e) {
         console.log(e);
-        console.log(handlerMap.current);
       }
     },
     [],
@@ -97,23 +107,15 @@ const useBLEManager = () => {
           'BleManagerDiscoverPeripheral',
           handleDiscoverPeripheral,
         ),
-      );
-      addedEmitterSubscriptions.push(
         bleManagerEmitter.addListener('BleManagerStopScan', handleStopScan),
-      );
-      addedEmitterSubscriptions.push(
         bleManagerEmitter.addListener(
           'BleManagerDisconnectPeripheral',
           handleDisconnectPeripheral,
         ),
-      );
-      addedEmitterSubscriptions.push(
         bleManagerEmitter.addListener(
           'BleManagerConnectPeripheral',
           handleConnectPeripheral,
         ),
-      );
-      addedEmitterSubscriptions.push(
         bleManagerEmitter.addListener(
           'BleManagerDidUpdateValueForCharacteristic',
           handleUpdateValueForCharacteristic,
@@ -160,6 +162,75 @@ const useBLEManager = () => {
   const stopScan = useCallback(async () => {
     await BleManager.stopScan();
   }, []);
+  const startNotification = useCallback(
+    async ({
+      peripheralId,
+      serviceUUID,
+      characteristicUUID,
+      onNotify,
+    }: BLECharacteristicIdentifier & {
+      onNotify: (bytes: number[]) => void;
+    }) => {
+      await BleManager.startNotification(
+        peripheralId,
+        serviceUUID,
+        characteristicUUID,
+      );
+      handlerMap.current.set(
+        createHandlerKey({
+          peripheral: peripheralId,
+          service: serviceUUID,
+          characteristic: characteristicUUID,
+        }),
+        onNotify,
+      );
+    },
+    [],
+  );
+  const stopNotification = useCallback(
+    async ({
+      peripheralId,
+      serviceUUID,
+      characteristicUUID,
+    }: BLECharacteristicIdentifier) => {
+      await BleManager.stopNotification(
+        peripheralId,
+        serviceUUID,
+        characteristicUUID,
+      );
+    },
+    [],
+  );
+  const read = useCallback(
+    async ({
+      peripheralId,
+      serviceUUID,
+      characteristicUUID,
+    }: BLECharacteristicIdentifier) => {
+      return await BleManager.read(
+        peripheralId,
+        serviceUUID,
+        characteristicUUID,
+      );
+    },
+    [],
+  );
+  const write = useCallback(
+    async ({
+      peripheralId,
+      serviceUUID,
+      characteristicUUID,
+      value,
+    }: BLECharacteristicIdentifier & {value: number[]}) => {
+      await BleManager.write(
+        peripheralId,
+        serviceUUID,
+        characteristicUUID,
+        value,
+      );
+    },
+    [],
+  );
 
   return {
     isScanning,
@@ -170,6 +241,10 @@ const useBLEManager = () => {
     connect,
     disconnect,
     retrieveServices,
+    startNotification,
+    stopNotification,
+    read,
+    write,
   };
 };
 

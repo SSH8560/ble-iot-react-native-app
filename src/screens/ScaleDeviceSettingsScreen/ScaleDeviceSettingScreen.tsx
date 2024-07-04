@@ -119,9 +119,7 @@ const ScaleDeviceSettingScreen = ({
               return (
                 <Accordion key={serviceUUID}>
                   <AccordionTrigger>
-                    <Text style={{fontSize: 18, fontWeight: 'bold'}}>
-                      {SERVICE_MAP.get(serviceUUID)?.label}
-                    </Text>
+                    <Text style={{fontSize: 18, fontWeight: 'bold'}}>설정</Text>
                   </AccordionTrigger>
                   <AccordionContent>
                     {providedCharacteristics

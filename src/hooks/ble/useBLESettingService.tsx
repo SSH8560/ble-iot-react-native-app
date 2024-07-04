@@ -1,7 +1,6 @@
 import BleManager from 'react-native-ble-manager';
 import useBLEUUIDs from './useBLEUUIDs';
 import {bytesToString, createHandlerKey, stringToBytes} from '@/libs/utils';
-import {BleException} from '@/libs/errors';
 import {useBLEContext} from '@/providers/BLEProvider';
 
 interface useBLESettingServiceProps {

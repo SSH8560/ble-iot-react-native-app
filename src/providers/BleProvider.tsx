@@ -25,7 +25,7 @@ export const BLEProvider = ({children}: PropsWithChildren) => {
   );
 };
 
-export const useBLEContext = () => {
+export const useBLEManager = () => {
   const context = useContext(BLEContext);
   if (!context) throw new Error('BLEProvider안에서 사용해주세요');
 
