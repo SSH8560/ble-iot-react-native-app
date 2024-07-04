@@ -1,7 +1,7 @@
-import BleManager from 'react-native-ble-manager';
-import {useBLEContext} from '@/providers/BLEProvider';
+import {useBLECharacteristic} from '@/providers/BLEProvider';
 import useBLEUUIDs from './useBLEUUIDs';
-import {bytesToNumber, createHandlerKey, stringToBytes} from '@/libs/utils';
+import {bytesToNumber, stringToBytes} from '@/libs/utils';
+import {useCallback, useState} from 'react';
 
 interface useBLELoadCellProps {
   peripheralId: string;
@@ -14,80 +14,103 @@ const useBLELoadCellService = ({peripheralId}: useBLELoadCellProps) => {
     tareCharacteristic,
     calibrationCharacteristic,
   } = useBLEUUIDs();
-  const {handlerMap} = useBLEContext();
+  const {read, write, startNotification, stopNotification} =
+    useBLECharacteristic();
+  const [weight, setWeight] = useState<string>('');
+  const [calibration, setCalibration] = useState<string>('');
+  const [isNotifyingWeight, setIsNotifyingWeight] = useState<boolean>(false);
 
   const readWeight = async () => {
-    return bytesToNumber(
-      await BleManager.read(
-        peripheralId,
-        loadCellServiceUUID,
-        weightCharacteristic,
-      ),
-    );
-  };
-  const notifyWeight = async (onNotify: (weight: number) => void) => {
-    await BleManager.startNotification(
+    const bytes = await read({
       peripheralId,
-      loadCellServiceUUID,
-      weightCharacteristic,
-    );
-    handlerMap.set(
-      createHandlerKey({
-        peripheral: peripheralId,
-        service: loadCellServiceUUID,
-        characteristic: weightCharacteristic,
-      }),
-      bytes => onNotify(bytesToNumber(bytes)),
-    );
+      serviceUUID: loadCellServiceUUID,
+      characteristicUUID: weightCharacteristic,
+    });
+    const recievedWeight = bytesToNumber(bytes).toFixed(2);
+    setWeight(recievedWeight);
+    return recievedWeight;
+  };
+  const startNotifyWeight = useCallback(
+    async (onNotify?: (weight: number) => void) => {
+      await startNotification({
+        peripheralId,
+        serviceUUID: loadCellServiceUUID,
+        characteristicUUID: weightCharacteristic,
+        onNotify: bytes => {
+          const recievedWeight = bytesToNumber(bytes);
+          console.log(recievedWeight);
+          setWeight(recievedWeight.toFixed(2));
+          onNotify && onNotify(recievedWeight);
+        },
+      });
+      setIsNotifyingWeight(true);
+    },
+    [],
+  );
+  const stopNotifyWeight = async () => {
+    await stopNotification({
+      peripheralId,
+      serviceUUID: loadCellServiceUUID,
+      characteristicUUID: weightCharacteristic,
+    });
+    setIsNotifyingWeight(false);
   };
   const tare = async () => {
-    await BleManager.read(
+    await read({
       peripheralId,
-      loadCellServiceUUID,
-      tareCharacteristic,
-    );
+      serviceUUID: loadCellServiceUUID,
+      characteristicUUID: tareCharacteristic,
+    });
   };
   const readCalibration = async () => {
     return bytesToNumber(
-      await BleManager.read(
+      await read({
         peripheralId,
-        loadCellServiceUUID,
-        calibrationCharacteristic,
-      ),
-    );
-  };
-  const writeCalibration = async (calibration: number) => {
-    await BleManager.write(
-      peripheralId,
-      loadCellServiceUUID,
-      calibrationCharacteristic,
-      stringToBytes(String(calibration)),
-    );
-  };
-  const notifyCalibration = async (onNotify: (calibration: number) => void) => {
-    await BleManager.startNotification(
-      peripheralId,
-      loadCellServiceUUID,
-      calibrationCharacteristic,
-    );
-    handlerMap.set(
-      createHandlerKey({
-        peripheral: peripheralId,
-        service: loadCellServiceUUID,
-        characteristic: calibrationCharacteristic,
+        serviceUUID: loadCellServiceUUID,
+        characteristicUUID: calibrationCharacteristic,
       }),
-
-      bytes => onNotify(bytesToNumber(bytes)),
     );
+  };
+  const writeCalibration = async (newCalibration: number) => {
+    await write({
+      peripheralId,
+      serviceUUID: loadCellServiceUUID,
+      characteristicUUID: calibrationCharacteristic,
+      value: stringToBytes(String(newCalibration)),
+    });
+  };
+  const startNotifyCalibration = async (
+    onNotify?: (calibration: number) => void,
+  ) => {
+    await startNotification({
+      peripheralId,
+      serviceUUID: loadCellServiceUUID,
+      characteristicUUID: calibrationCharacteristic,
+      onNotify: bytes => {
+        onNotify && onNotify(bytesToNumber(bytes));
+      },
+    });
+  };
+  const stopNotifyCalibration = async () => {
+    await stopNotification({
+      peripheralId,
+      serviceUUID: loadCellServiceUUID,
+      characteristicUUID: calibrationCharacteristic,
+    });
   };
 
   return {
+    weight,
+    isNotifyingWeight,
     readWeight,
-    notifyWeight,
+    startNotifyWeight,
+    stopNotifyWeight,
     tare,
+    calibration,
     readCalibration,
     writeCalibration,
-    notifyCalibration,
+    startNotifyCalibration,
+    stopNotifyCalibration,
   };
 };
 

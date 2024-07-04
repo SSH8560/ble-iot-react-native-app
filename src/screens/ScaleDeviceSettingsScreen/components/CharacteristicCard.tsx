@@ -1,37 +1,26 @@
-import {CHARACTERISTIC_MAP} from '@/libs/ble';
 import React from 'react';
 import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import {Buffer} from 'buffer';
 
 interface CharacteristicCardProps {
-  characteristicUUID: string;
-  bytesValue: number[] | null;
-  notified?: boolean;
+  label: string;
+  value: string;
+  isNotifying?: boolean;
   onPressRead?: () => void;
   onPressWrite?: () => void;
-  onPressNotify?: () => void;
+  onPressStartNotify?: () => void;
+  onPressStopNotify?: () => void;
 }
 
 const CharacteristicCard = ({
-  characteristicUUID,
-  bytesValue,
-  notified,
+  label,
+  value,
+  isNotifying,
   onPressRead,
   onPressWrite,
-  onPressNotify,
+  onPressStartNotify,
+  onPressStopNotify,
 }: CharacteristicCardProps) => {
-  const characteristicInfo = CHARACTERISTIC_MAP.get(characteristicUUID);
-  if (!characteristicInfo) return null;
-
-  const {label, valueType} = characteristicInfo;
-
-  const value = bytesValue
-    ? valueType === 'FLOAT'
-      ? Buffer.from(bytesValue).readFloatLE()
-      : String.fromCharCode(...bytesValue)
-    : 'N/A';
-
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -41,12 +30,19 @@ const CharacteristicCard = ({
             <IconButton name="download-outline" onPress={onPressRead} />
           )}
           {onPressWrite && <IconButton name="pencil" onPress={onPressWrite} />}
-          {onPressNotify && (
-            <IconButton
-              name={notified ? 'notifications' : 'notifications-outline'}
-              onPress={onPressNotify}
-            />
-          )}
+          {onPressStartNotify &&
+            onPressStopNotify &&
+            (isNotifying ? (
+              <IconButton
+                name={'notifications'}
+                onPress={() => onPressStopNotify()}
+              />
+            ) : (
+              <IconButton
+                name={'notifications-outline'}
+                onPress={() => onPressStartNotify()}
+              />
+            ))}
         </View>
       </View>
       <View style={styles.content}>

@@ -1,29 +1,51 @@
-import BleManager from 'react-native-ble-manager';
 import useBLEUUIDs from './useBLEUUIDs';
-import {bytesToString, createHandlerKey, stringToBytes} from '@/libs/utils';
-import {useBLEContext} from '@/providers/BLEProvider';
+import {bytesToString, stringToBytes} from '@/libs/utils';
+import {useBLECharacteristic} from '@/providers/BLEProvider';
+import {useState} from 'react';
 
 interface useBLESettingServiceProps {
   peripheralId: string;
 }
 
 const useBLESettingService = ({peripheralId}: useBLESettingServiceProps) => {
-  const {handlerMap} = useBLEContext();
   const {
     settingServiceUUID,
     wifiCredentialCharacteristicUUID,
     connectionCharacteristicUUID,
     deviceInfoCharacteristicUUID,
   } = useBLEUUIDs();
-  const readWifiCredential = async () => {
-    const bytes = await BleManager.read(
-      peripheralId,
-      settingServiceUUID,
-      wifiCredentialCharacteristicUUID,
-    );
+  const {read, write, startNotification, stopNotification} =
+    useBLECharacteristic();
+  const [wifiCredential, setWifiCredential] = useState<{
+    ssid: string;
+    password: string;
+  }>({ssid: '', password: ''});
+  const [connection, setConnection] = useState<string>('');
+  const [deviceInfo, setDeviceInfo] = useState<{
+    uuid: string;
+    type: string;
+  }>({
+    uuid: '',
+    type: '',
+  });
+  const [isNotifyingWifiCredential, setIsNotifyingWifiCredential] =
+    useState<boolean>(false);
+  const [isNotifyingConnection, setIsNotifyingConnection] =
+    useState<boolean>(false);
 
-    const [wifiUUID, wifiPassword] = bytesToString(bytes).split(',');
-    return {wifiUUID, wifiPassword};
+  const readWifiCredential = async () => {
+    const bytes = await read({
+      peripheralId,
+      serviceUUID: settingServiceUUID,
+      characteristicUUID: wifiCredentialCharacteristicUUID,
+    });
+
+    const [ssid, password] = bytesToString(bytes).split(',');
+    setWifiCredential({
+      ssid,
+      password,
+    });
+    return {ssid, password};
   };
   const writeWifiCredential = async ({
     ssid,
@@ -32,85 +54,94 @@ const useBLESettingService = ({peripheralId}: useBLESettingServiceProps) => {
     ssid: string;
     password?: string;
   }) => {
-    await BleManager.write(
+    await write({
       peripheralId,
-      settingServiceUUID,
-      wifiCredentialCharacteristicUUID,
-      stringToBytes(`${ssid},${password}`),
-    );
+      serviceUUID: settingServiceUUID,
+      characteristicUUID: wifiCredentialCharacteristicUUID,
+      value: stringToBytes(`${ssid},${password}`),
+    });
   };
   const startNotifyWifiCredential = async (
-    onNotify: (ssid: string, password: string) => void,
+    onNotify?: (ssid: string, password: string) => void,
   ) => {
-    await BleManager.startNotification(
+    await startNotification({
       peripheralId,
-      settingServiceUUID,
-      wifiCredentialCharacteristicUUID,
-    );
-    handlerMap.set(
-      createHandlerKey({
-        peripheral: peripheralId,
-        service: settingServiceUUID,
-        characteristic: wifiCredentialCharacteristicUUID,
-      }),
-      bytes => {
+      serviceUUID: settingServiceUUID,
+      characteristicUUID: wifiCredentialCharacteristicUUID,
+      onNotify: bytes => {
         const [ssid, password] = bytesToString(bytes).split(',');
-        onNotify(ssid, password);
+        onNotify && onNotify(ssid, password);
+        setWifiCredential({ssid, password});
       },
-    );
+    });
+    setIsNotifyingWifiCredential(true);
   };
   const stopNotifyWifiCredential = async () => {
-    await BleManager.stopNotification(
+    await stopNotification({
       peripheralId,
-      settingServiceUUID,
-      wifiCredentialCharacteristicUUID,
-    );
+      serviceUUID: settingServiceUUID,
+      characteristicUUID: wifiCredentialCharacteristicUUID,
+    });
+    setIsNotifyingWifiCredential(false);
   };
   const readConnection = async () => {
-    return bytesToString(
-      await BleManager.read(
-        peripheralId,
-        settingServiceUUID,
-        connectionCharacteristicUUID,
-      ),
-    );
-  };
-  const notifyConnection = async (onNotify: (status: string) => void) => {
-    await BleManager.startNotification(
+    const bytes = await read({
       peripheralId,
-      settingServiceUUID,
-      connectionCharacteristicUUID,
-    );
-    handlerMap.set(
-      createHandlerKey({
-        peripheral: peripheralId,
-        service: settingServiceUUID,
-        characteristic: connectionCharacteristicUUID,
-      }),
-      bytes => {
-        onNotify(bytesToString(bytes));
+      serviceUUID: settingServiceUUID,
+      characteristicUUID: connectionCharacteristicUUID,
+    });
+    const recievedConnection = bytesToString(bytes);
+
+    setConnection(recievedConnection);
+    return recievedConnection;
+  };
+  const startNotifyConnection = async (onNotify?: (status: string) => void) => {
+    await startNotification({
+      peripheralId,
+      serviceUUID: settingServiceUUID,
+      characteristicUUID: connectionCharacteristicUUID,
+      onNotify: bytes => {
+        const recievedConnection = bytesToString(bytes);
+        onNotify && onNotify(recievedConnection);
+        setConnection(recievedConnection);
       },
-    );
+    });
+    setIsNotifyingConnection(true);
+  };
+  const stopNotifyConnection = async () => {
+    await stopNotification({
+      peripheralId,
+      serviceUUID: settingServiceUUID,
+      characteristicUUID: connectionCharacteristicUUID,
+    });
+    setIsNotifyingConnection(false);
   };
   const readDeviceInfo = async () => {
-    const [deviceUUID, deviceType] = bytesToString(
-      await BleManager.read(
+    const [uuid, type] = bytesToString(
+      await read({
         peripheralId,
-        settingServiceUUID,
-        deviceInfoCharacteristicUUID,
-      ),
+        serviceUUID: settingServiceUUID,
+        characteristicUUID: deviceInfoCharacteristicUUID,
+      }),
     ).split(',');
 
-    return {deviceUUID, deviceType};
+    setDeviceInfo({uuid, type});
+    return {uuid, type};
   };
 
   return {
+    wifiCredential,
+    connection,
+    deviceInfo,
+    isNotifyingConnection,
+    isNotifyingWifiCredential,
     readWifiCredential,
     writeWifiCredential,
     startNotifyWifiCredential,
     stopNotifyWifiCredential,
     readConnection,
-    notifyConnection,
+    startNotifyConnection,
+    stopNotifyConnection,
     readDeviceInfo,
   };
 };

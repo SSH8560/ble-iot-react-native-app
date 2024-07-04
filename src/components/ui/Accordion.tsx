@@ -1,6 +1,5 @@
 import React, {createContext, useCallback, useContext, useState} from 'react';
 import {TouchableOpacity, View} from 'react-native';
-import {boolean} from 'zod';
 
 interface AccordionContextType {
   open: boolean;

@@ -1,14 +1,12 @@
 import {postUserDevice} from '@/apis/supabase/userDevices';
-import {useBLEContext} from '@/providers/BLEProvider';
 import {DeviceRegistrationParams, RootStackParams} from '@/router.d';
 import {CompositeScreenProps} from '@react-navigation/native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import React, {useCallback, useEffect, useState} from 'react';
-import {Buffer} from 'buffer';
 import {bytesToString, createKey, stringToBytes} from '@/libs/utils';
 import LoadingIndicator from '@/components/LoadingIndicator';
 import {View} from 'react-native';
-import useUUIDs from '@/hooks/ble/useUUIDs';
+import useBLESettingService from '@/hooks/ble/useBLESettingService';
 
 type Status = 'INITIATING' | 'PAIRING' | 'REGISTERING' | 'DONE' | 'ERROR';
 
@@ -25,18 +23,7 @@ const PairingScreen = ({
   navigation,
 }: PairingScreenProps) => {
   const [status, setStatus] = useState<Status>('INITIATING');
-  const {
-    characteristicValues,
-    handlePressWrite,
-    handlePressNotification,
-    handlePressRead,
-  } = useBLEContext();
-  const {
-    settingServiceUUID,
-    connectionCharacteristicUUID,
-    deviceInfoCharacteristicUUID,
-    wifiCredentialCharacteristicUUID,
-  } = useUUIDs();
+  const {} = useBLESettingService({peripheralId});
 
   const handleDone = useCallback(async () => {
     setStatus('DONE');

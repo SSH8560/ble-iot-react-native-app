@@ -6,7 +6,6 @@ import {
 } from 'react-native';
 import BleManager, {Peripheral} from 'react-native-ble-manager';
 import {hasBluetoothPermissions} from '@/libs/permissions';
-import {useBLEContext} from '@/providers/BLEProvider';
 import {createHandlerKey} from '@/libs/utils';
 
 type BLECharacteristicIdentifier = {
@@ -18,7 +17,7 @@ type BLECharacteristicIdentifier = {
 const BleManagerModule = NativeModules.BleManager;
 const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
 
-const useBLEManager = () => {
+const useBLE = () => {
   const handlerMap = useRef<Map<string, (bytes: number[]) => void>>(new Map());
   const emitterSubscriptions = useRef<EmitterSubscription[]>([]);
   const [isScanning, setIsScanning] = useState(false);
@@ -74,12 +73,7 @@ const useBLEManager = () => {
           characteristic,
         });
         const handler = handlerMap.current.get(handlerKey);
-
-        if (!handler)
-          throw new Error(
-            `Handler Not Found For. 
-            key:${handlerKey}`,
-          );
+        if (!handler) return;
 
         handler(value);
       } catch (e) {
@@ -248,4 +242,4 @@ const useBLEManager = () => {
   };
 };
 
-export default useBLEManager;
+export default useBLE;
