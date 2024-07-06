@@ -1,7 +1,9 @@
 import {UserDevice} from '@/apis/supabase/userDevices';
+import DistDeviceImage from '@/components/image/deviceType/DistDeviceImage';
+import ScaleDeviceImage from '@/components/image/deviceType/ScaleDeviceImage';
 import {useTheme} from '@react-navigation/native';
 import React from 'react';
-import {Image, ImageSourcePropType, StyleSheet, Text} from 'react-native';
+import {StyleSheet, Text} from 'react-native';
 import {FlatList, ListRenderItem, TouchableOpacity, View} from 'react-native';
 
 const IMAGE_SIZE = 60;
@@ -15,13 +17,13 @@ const DeviceList = ({devices, onPressDeviceItem}: DeviceListProps) => {
   const {colors} = useTheme();
   const renderDevice: ListRenderItem<UserDevice> = ({item}) => {
     const {device_type} = item;
-    const {image, label} = deviceInfo[device_type];
+    const {DeviceImageComponent, label} = deviceInfo[device_type];
 
     return (
       <TouchableOpacity
         style={[styles.deviceItemContainer, {borderColor: colors.border}]}
         onPress={() => onPressDeviceItem(item)}>
-        <Image style={{width: IMAGE_SIZE, height: IMAGE_SIZE}} source={image} />
+        <DeviceImageComponent />
         <View>
           <Text>{label}</Text>
           <Text>{item.device_name ?? item.device_id}</Text>
@@ -47,17 +49,19 @@ const DeviceList = ({devices, onPressDeviceItem}: DeviceListProps) => {
   );
 };
 
-const scaleImage = require('@/assets/images/device/scale.png');
-
 const deviceInfo: {
   [key: string]: {
-    image: ImageSourcePropType;
+    DeviceImageComponent: React.FC;
     label: string;
   };
 } = {
   SCALE: {
-    image: scaleImage,
+    DeviceImageComponent: ScaleDeviceImage,
     label: '저울',
+  },
+  DIST: {
+    DeviceImageComponent: DistDeviceImage,
+    label: '거리',
   },
 };
 

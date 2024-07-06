@@ -1,6 +1,5 @@
-import {getServiceUUID} from '@/libs/ble';
+import useBLERegistration from '@/hooks/ble/useBLERegistration';
 import {hasBluetoothPermissions} from '@/libs/permissions';
-import {useBLEContext} from '@/providers/BLEProvider';
 import {DeviceRegistrationParams} from '@/router.d';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import React, {useCallback, useEffect} from 'react';
@@ -18,56 +17,51 @@ interface FindDeviceScreenProps
 
 const FindDeviceScreen = ({navigation}: FindDeviceScreenProps) => {
   const {
+    startScanDevice,
+    stopScanDevice,
+    connectDevice,
+    deviceList,
     isScanning,
-    startScan,
-    stopScan,
-    scannedPeripherals,
-    connect,
-    retrieveServices,
-  } = useBLEContext();
+  } = useBLERegistration();
 
   useEffect(() => {
-    hasBluetoothPermissions().then(() => startScan(5));
+    hasBluetoothPermissions().then(() => startScanDevice());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const peripheralList = Array.from(scannedPeripherals.values()).filter(
-    ({advertising: {serviceUUIDs}}) => {
-      return serviceUUIDs?.includes(getServiceUUID('설정'));
-    },
-  );
-
   const renderPeripheral: ListRenderItem<Peripheral> = useCallback(
     ({item: {id, name}}) => {
+      const onPressDevice = async () => {
+        try {
+          if (isScanning) stopScanDevice();
+
+          connectDevice(id);
+          navigation.navigate('Wifi', {
+            peripheralId: id,
+          });
+        } catch (e) {
+          throw e;
+        }
+      };
+
       return (
         <TouchableOpacity
           style={{height: 40, paddingHorizontal: 10, justifyContent: 'center'}}
-          onPress={async () => {
-            try {
-              stopScan();
-              await connect(id);
-              await retrieveServices(id);
-              navigation.navigate('Wifi', {
-                peripheralId: id,
-              });
-            } catch (e) {
-              throw e;
-            }
-          }}>
+          onPress={onPressDevice}>
           <Text style={{fontSize: 18, fontWeight: '700'}}>{name}</Text>
         </TouchableOpacity>
       );
     },
-    [connect, stopScan, navigation, retrieveServices],
+    [isScanning],
   );
 
   return (
     <View style={{flex: 1}}>
       <FlatList
         refreshing={isScanning}
-        onRefresh={() => startScan(5)}
+        onRefresh={() => startScanDevice()}
         style={{flex: 1}}
-        data={peripheralList}
+        data={deviceList}
         renderItem={renderPeripheral}
       />
     </View>
