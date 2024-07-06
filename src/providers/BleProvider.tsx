@@ -14,6 +14,7 @@ export const useBLEManager = () => {
   if (!context) throw new Error('BLEProvider안에서 사용해주세요');
 
   const {
+    isScanning,
     scannedPeripherals,
     connectedPeripherals,
     startScan,
@@ -23,6 +24,7 @@ export const useBLEManager = () => {
     retrieveServices,
   } = context;
   return {
+    isScanning,
     scannedPeripherals,
     connectedPeripherals,
     startScan,
