@@ -13,9 +13,23 @@ interface Characteristic {
 export const SERVICES: Service[] = [
   {uuid: '68b6285c-df48-4809-9b0d-8ff8196996d8', label: '로드셀'},
   {uuid: '3126d1ed-031f-4470-8906-3a3b90bc039a', label: '설정'},
+  {uuid: 'ed675cf4-ff51-4be8-96e1-4c89b78e0fa0', label: '거리'},
 ];
 
 export const CHARACTERISTICS: Characteristic[] = [
+  // 거리
+  {
+    uuid: '3e5df93e-36a6-4f01-a9d0-021d6cd599a4',
+    label: '거리',
+    serviceUuid: 'ed675cf4-ff51-4be8-96e1-4c89b78e0fa0',
+    valueType: 'FLOAT',
+  },
+  {
+    uuid: '2da860d3-536f-4e84-afcb-27e0178d3102',
+    label: '변화량',
+    serviceUuid: 'ed675cf4-ff51-4be8-96e1-4c89b78e0fa0',
+    valueType: 'FLOAT',
+  },
   // 로드셀
   {
     uuid: '8f46de3a-b1d6-4fa2-9298-a444f2e0f10d',

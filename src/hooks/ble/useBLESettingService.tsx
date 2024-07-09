@@ -101,6 +101,7 @@ const useBLESettingService = ({peripheralId}: useBLESettingServiceProps) => {
       serviceUUID: settingServiceUUID,
       characteristicUUID: connectionCharacteristicUUID,
       onNotify: bytes => {
+        console.log(bytes);
         const recievedConnection = bytesToString(bytes);
         onNotify && onNotify(recievedConnection);
         setConnection(recievedConnection);

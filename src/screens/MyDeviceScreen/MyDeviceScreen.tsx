@@ -35,14 +35,12 @@ const MyDeviceScreen = ({navigation}: HomeScreenProps) => {
           <Text style={{color: '#000'}}>로딩 중</Text>
         </View>
       ) : (
-        <>
-          <DeviceList
-            devices={devices}
-            onPressDeviceItem={device =>
-              navigation.navigate('ScaleDeviceDetail', {device})
-            }
-          />
-        </>
+        <DeviceList
+          devices={devices}
+          onPressDeviceItem={device =>
+            navigation.navigate('ScaleDeviceDetail', {device})
+          }
+        />
       )}
     </View>
   );

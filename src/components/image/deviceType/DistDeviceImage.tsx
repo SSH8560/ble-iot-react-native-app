@@ -8,7 +8,7 @@ interface DistDeviceImageProps {}
 const DistDeviceImage: React.FC<DistDeviceImageProps> = () => {
   return (
     <DeviceImage>
-      <Icon name="arrows-alt-h" />
+      <Icon name="arrows-alt-h" size={28} />
     </DeviceImage>
   );
 };

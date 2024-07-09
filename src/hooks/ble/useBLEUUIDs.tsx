@@ -10,6 +10,9 @@ const useBLEUUIDs = () => {
     weightCharacteristic: getCharacteristicUUID('무게'),
     tareCharacteristic: getCharacteristicUUID('영점'),
     calibrationCharacteristic: getCharacteristicUUID('계수'),
+    distanceServiceUUID: getServiceUUID('거리'),
+    distanceCharacteristicUUID: getCharacteristicUUID('거리'),
+    distanceChangeThresholdCharacteristicUUID: getCharacteristicUUID('변화량'),
   };
 };
 

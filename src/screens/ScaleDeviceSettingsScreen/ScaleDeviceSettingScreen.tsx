@@ -12,6 +12,9 @@ import LoadingIndicator from '../../components/LoadingIndicator';
 import {BLEProvider, useBLEManager} from '@/providers/BLEProvider';
 import useBLELoadCellService from '@/hooks/ble/useBLELoadCellService';
 import useBLESettingService from '@/hooks/ble/useBLESettingService';
+import SettingServices from './components/SettingServices';
+import LoadCellServices from './components/LoadCellServices';
+import DistanceService from './components/DistanceService';
 interface ScaleDeviceSettingScreenProps
   extends NativeStackScreenProps<RootStackParams, 'ScaleDeviceSetting'> {}
 
@@ -32,36 +35,6 @@ const ScaleDeviceSettingScreen = ({
     disconnect,
     retrieveServices,
   } = useBLEManager();
-  const {
-    calibration,
-    startNotifyCalibration,
-    stopNotifyCalibration,
-    readCalibration,
-    weight,
-    isNotifyingWeight,
-    writeCalibration,
-    startNotifyWeight,
-    stopNotifyWeight,
-    readWeight,
-    tare,
-  } = useBLELoadCellService({peripheralId});
-  const {
-    connection,
-    deviceInfo,
-    wifiCredential,
-    startNotifyWifiCredential,
-    stopNotifyWifiCredential,
-    readWifiCredential,
-    writeWifiCredential,
-    readConnection,
-    startNotifyConnection,
-    readDeviceInfo,
-    isNotifyingConnection,
-    isNotifyingWifiCredential,
-    stopNotifyConnection,
-  } = useBLESettingService({
-    peripheralId,
-  });
 
   const isScanned = scannedPeripherals.has(peripheralId);
   const isConnected = connectedPeripherals.includes(peripheralId);
@@ -98,49 +71,8 @@ const ScaleDeviceSettingScreen = ({
         />
         {isConnected && (
           <View>
-            <Accordion>
-              <AccordionTrigger>
-                <Text style={{fontSize: 18, fontWeight: 'bold'}}>설정</Text>
-              </AccordionTrigger>
-              <AccordionContent>
-                <CharacteristicCard
-                  label="와이파이"
-                  value={`${wifiCredential.ssid},${wifiCredential.password}`}
-                  isNotifying={isNotifyingWifiCredential}
-                  onPressStartNotify={startNotifyWifiCredential}
-                  onPressStopNotify={stopNotifyWifiCredential}
-                  onPressRead={readWifiCredential}
-                />
-                <CharacteristicCard
-                  label="인터넷 연결상태"
-                  value={`${connection}`}
-                  isNotifying={isNotifyingConnection}
-                  onPressStartNotify={startNotifyConnection}
-                  onPressStopNotify={stopNotifyConnection}
-                  onPressRead={readConnection}
-                />
-                <CharacteristicCard
-                  label="기기 정보"
-                  value={`${deviceInfo.type},${deviceInfo.uuid}`}
-                  onPressRead={readDeviceInfo}
-                />
-              </AccordionContent>
-            </Accordion>
-            <Accordion>
-              <AccordionTrigger>
-                <Text style={{fontSize: 18, fontWeight: 'bold'}}>저울</Text>
-              </AccordionTrigger>
-              <AccordionContent>
-                <CharacteristicCard
-                  label="무게"
-                  value={`${weight}`}
-                  isNotifying={isNotifyingWeight}
-                  onPressRead={readWeight}
-                  onPressStartNotify={startNotifyWeight}
-                  onPressStopNotify={stopNotifyWeight}
-                />
-              </AccordionContent>
-            </Accordion>
+            <SettingServices peripheralId={peripheralId} />
+            <DistanceService peripheralId={peripheralId} />
           </View>
         )}
       </View>

@@ -221,6 +221,7 @@ const useBLE = () => {
         serviceUUID,
         characteristicUUID,
         value,
+        value.length,
       );
     },
     [],

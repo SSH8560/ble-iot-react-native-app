@@ -1,6 +1,8 @@
 import {hasLocationPermission} from '@/libs/permissions';
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {
+  AppState,
+  AppStateStatus,
   Button,
   Linking,
   StyleSheet,
@@ -25,19 +27,34 @@ const WifiScreen = ({
 }: WifiScreenProps) => {
   const {disconnect} = useBLEManager();
   const [wifiSsid, setWifiSsid] = useState<string>('');
-  const [wifiPassword, setWifiPassword] = useState<string>('');
+  const [wifiPassword, setWifiPassword] = useState<string>('6dbb3hf606');
+
   useEffect(() => {
+    getCurrentWifiSSID();
+
+    const handleAppStateChange = (nextAppState: AppStateStatus) => {
+      if (nextAppState === 'active') getCurrentWifiSSID();
+    };
+
+    const subscription = AppState.addEventListener(
+      'change',
+      handleAppStateChange,
+    );
+
+    return () => {
+      subscription.remove();
+      disconnect(peripheralId);
+    };
+  }, []);
+
+  const getCurrentWifiSSID = useCallback(() => {
     hasLocationPermission().then(hasPermission => {
       if (!hasPermission) return;
       WifiManager.getCurrentWifiSSID()
         .then(setWifiSsid)
         .catch(() => setWifiSsid(''));
     });
-
-    return () => {
-      disconnect(peripheralId);
-    };
-  }, [disconnect, peripheralId]);
+  }, []);
 
   return (
     <View style={{padding: 16}}>
@@ -56,6 +73,7 @@ const WifiScreen = ({
         <Icon name="lock-outline" size={28} color="#000" />
         <TextInput
           style={styles.wifiPasswordInput}
+          value={wifiPassword}
           onChangeText={setWifiPassword}
         />
       </View>

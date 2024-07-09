@@ -42,7 +42,7 @@ const DeviceList = ({devices, onPressDeviceItem}: DeviceListProps) => {
   return (
     <FlatList
       style={{flex: 1}}
-      contentContainerStyle={{padding: 10}}
+      contentContainerStyle={{padding: 10, gap: 10}}
       data={devices}
       renderItem={renderDevice}
     />

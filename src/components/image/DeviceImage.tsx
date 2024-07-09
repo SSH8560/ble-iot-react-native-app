@@ -13,6 +13,8 @@ const styles = StyleSheet.create({
   container: {
     width: IMAGE_SIZE,
     height: IMAGE_SIZE,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 

@@ -4,7 +4,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 
 interface CharacteristicCardProps {
   label: string;
-  value: string;
+  value: string | number | null;
   isNotifying?: boolean;
   onPressRead?: () => void;
   onPressWrite?: () => void;

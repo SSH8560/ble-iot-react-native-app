@@ -23,7 +23,17 @@ const PairingScreen = ({
   navigation,
 }: PairingScreenProps) => {
   const [status, setStatus] = useState<Status>('INITIATING');
-  const {} = useBLESettingService({peripheralId});
+  const {
+    writeWifiCredential,
+    readConnection,
+    startNotifyConnection,
+    stopNotifyConnection,
+    readDeviceInfo,
+  } = useBLESettingService({peripheralId});
+
+  useEffect(() => {
+    handleInitiating();
+  }, []);
 
   const handleDone = useCallback(async () => {
     setStatus('DONE');
@@ -35,85 +45,36 @@ const PairingScreen = ({
     // TODO: Toast 메시지
     navigation.goBack();
   }, [navigation]);
+
+  const handlePairing = useCallback(async () => {
+    setStatus('PAIRING');
+
+    await writeWifiCredential({ssid: wifiSsid, password: wifiPassword});
+    const isWifiConnected = await readConnection();
+    if (isWifiConnected === 'connected') handleRegistering();
+  }, []);
+
   const handleRegistering = useCallback(async () => {
     try {
       setStatus('REGISTERING');
-      const bytes = await handlePressRead({
-        peripheralId,
-        serviceUUID: settingServiceUUID,
-        characteristicUUID: deviceInfoCharacteristicUUID,
-      });
-      const [device_id, device_type] = bytesToString(bytes).split(',');
 
+      const {type, uuid} = await readDeviceInfo();
       await postUserDevice({
         peripheral_id: peripheralId,
-        device_id,
-        device_type,
+        device_id: uuid,
+        device_type: type,
       });
+
       handleDone();
     } catch (e) {
       console.log(e);
       navigation.navigate('MainTab');
     }
-  }, [
-    handleDone,
-    peripheralId,
-    settingServiceUUID,
-    deviceInfoCharacteristicUUID,
-    handlePressRead,
-    navigation,
-  ]);
-  const handlePairing = useCallback(async () => {
-    setStatus('PAIRING');
-    handlePressWrite({
-      peripheralId,
-      serviceUUID: settingServiceUUID,
-      characteristicUUID: wifiCredentialCharacteristicUUID,
-      data: stringToBytes(`${wifiSsid},${wifiPassword}`),
-    });
-  }, [
-    handlePressWrite,
-    peripheralId,
-    settingServiceUUID,
-    wifiCredentialCharacteristicUUID,
-    wifiPassword,
-    wifiSsid,
-  ]);
-  const handleInitiating = useCallback(async () => {
-    await handlePressNotification({
-      peripheralId,
-      serviceUUID: settingServiceUUID,
-      characteristicUUID: connectionCharacteristicUUID,
-    });
-    handlePairing();
-  }, [
-    peripheralId,
-    settingServiceUUID,
-    connectionCharacteristicUUID,
-    handlePairing,
-    handlePressNotification,
-  ]);
-
-  useEffect(() => {
-    handleInitiating();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => {
-    const wifiConnectedBytes =
-      characteristicValues[
-        createKey(settingServiceUUID, connectionCharacteristicUUID)
-      ];
-    if (!wifiConnectedBytes) return;
-
-    const wifiConnected = bytesToString(wifiConnectedBytes);
-    if (wifiConnected !== 'connected') {
-      handleError();
-    } else {
-      handleRegistering();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [characteristicValues]);
+  const handleInitiating = useCallback(async () => {
+    handlePairing();
+  }, []);
 
   return (
     <View style={{flex: 1}}>
