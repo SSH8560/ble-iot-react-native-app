@@ -22,7 +22,7 @@ const Accordion = ({children}: AccordionProps) => {
 
   return (
     <AccordionContext.Provider value={{open, toggleOpen}}>
-      <View>{children}</View>
+      {children}
     </AccordionContext.Provider>
   );
 };
@@ -33,9 +33,7 @@ export const AccordionTrigger = ({children}: AccordionTriggerProps) => {
   const {toggleOpen} = useContext<AccordionContextType>(AccordionContext);
 
   return (
-    <TouchableOpacity onPress={() => toggleOpen()}>
-      <View>{children}</View>
-    </TouchableOpacity>
+    <TouchableOpacity onPress={() => toggleOpen()}>{children}</TouchableOpacity>
   );
 };
 
@@ -46,7 +44,7 @@ export const AccordionContent = ({children}: AccordionContentProps) => {
 
   if (!open) return null;
 
-  return <View>{children}</View>;
+  return children;
 };
 
 export default Accordion;

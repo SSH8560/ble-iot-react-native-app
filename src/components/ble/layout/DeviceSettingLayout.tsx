@@ -26,8 +26,7 @@ const DeviceSettingLayout: React.FC<DeviceSettingLayoutProps> = ({
         onPressDisconnect={() => disconnect(peripheralId)}
         onPressGoBack={() => goBack()}
       />
-      <View style={styles.content} />
-      {isConnected && children}
+      <View style={styles.content}>{isConnected && children}</View>
     </View>
   );
 };
