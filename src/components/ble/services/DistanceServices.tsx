@@ -1,14 +1,13 @@
 import React from 'react';
-import {View, Text, StyleSheet} from 'react-native';
-import ServiceLayout from './ServiceLayout';
-import CharacteristicCard from './CharacteristicCard';
+import ServiceLayout from '../layout/ServiceLayout';
+import CharacteristicCard from '../card/CharacteristicCard';
 import useBLEDistanceService from '@/hooks/ble/useBLEDistanceService';
 
-interface DistanceServiceProps {
+interface DistanceServicesProps {
   peripheralId: string;
 }
 
-const DistanceService: React.FC<DistanceServiceProps> = ({peripheralId}) => {
+const DistanceServices: React.FC<DistanceServicesProps> = ({peripheralId}) => {
   const {
     distance,
     isNotifyingDist,
@@ -30,12 +29,4 @@ const DistanceService: React.FC<DistanceServiceProps> = ({peripheralId}) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-});
-
-export default DistanceService;
+export default DistanceServices;

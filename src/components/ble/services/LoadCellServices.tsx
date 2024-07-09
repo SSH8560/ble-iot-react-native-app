@@ -1,7 +1,7 @@
 import React from 'react';
-import ServiceLayout from './ServiceLayout';
+import ServiceLayout from '../layout/ServiceLayout';
 import useBLELoadCellService from '@/hooks/ble/useBLELoadCellService';
-import CharacteristicCard from './CharacteristicCard';
+import CharacteristicCard from '../card/CharacteristicCard';
 
 interface LoadCellServicesProps {
   peripheralId: string;

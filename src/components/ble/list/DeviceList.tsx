@@ -6,8 +6,6 @@ import React from 'react';
 import {StyleSheet, Text} from 'react-native';
 import {FlatList, ListRenderItem, TouchableOpacity, View} from 'react-native';
 
-const IMAGE_SIZE = 60;
-
 interface DeviceListProps {
   devices: UserDevice[];
   onPressDeviceItem: (userDevice: UserDevice) => void;

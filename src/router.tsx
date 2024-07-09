@@ -4,7 +4,7 @@ import {
   BottomTabBarProps,
   createBottomTabNavigator,
 } from '@react-navigation/bottom-tabs';
-import MyDeviceScreen from '@/screens/MyDeviceScreen/MyDeviceScreen';
+import MyDeviceScreen from '@/screens/MyDeviceScreen';
 import SettingsScreen from '@/screens/SettingsScreen';
 import {BLEProvider} from './providers/BLEProvider';
 import {
@@ -12,14 +12,14 @@ import {
   MainTabParams,
   RootStackParams,
 } from '@/router.d';
-import FindDeviceScreen from './screens/DeviceRegistration/FindDeviceScreen';
-import WifiScreen from './screens/DeviceRegistration/WifiScreen';
-import PairingScreen from './screens/DeviceRegistration/PairingScreen';
-import ScaleDeviceDetailScreen from './screens/ScaleDeviceDetailScreen';
+import FindDeviceScreen from './screens/Device/Registration/FindDeviceScreen';
+import WifiScreen from './screens/Device/Registration/WifiScreen';
+import PairingScreen from './screens/Device/Registration/PairingScreen';
+import ScaleDeviceDetailScreen from '@/screens/Device/Scale/ScaleDeviceDetailScreen';
+import ScaleDeviceSettingScreen from '@/screens/Device/Scale/ScaleDeviceSettingScreen';
 import SpalshScreen from './screens/SplashScreen';
 import MainBottomTabBar from './components/MainBottomTabBar';
 import SignInScreen from './screens/SignInScreen';
-import ScaleDeviceSettingScreen from './screens/ScaleDeviceSettingsScreen/ScaleDeviceSettingScreen';
 
 const Stack = createNativeStackNavigator<RootStackParams>();
 const DeviceRegistrationStack =

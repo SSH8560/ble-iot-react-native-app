@@ -1,10 +1,7 @@
-import {
-  SimpleScaleDeviceValue,
-  getScaleDeviceValues,
-} from '@/apis/supabase/scaleDeviceValues';
+import {getScaleDeviceValues} from '@/apis/supabase/scaleDeviceValues';
 import {RootStackParams} from '@/router.d';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import {Text, TouchableOpacity, View} from 'react-native';
 import ScaleLineChart from '@/components/ScaleLineChart';
 import dayjs from 'dayjs';

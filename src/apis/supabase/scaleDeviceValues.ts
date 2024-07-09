@@ -1,4 +1,3 @@
-import dayjs from 'dayjs';
 import {supabase} from './supabase';
 import {endOfDay, startOfDay} from 'date-fns';
 

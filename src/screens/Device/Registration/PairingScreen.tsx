@@ -3,7 +3,6 @@ import {DeviceRegistrationParams, RootStackParams} from '@/router.d';
 import {CompositeScreenProps} from '@react-navigation/native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import React, {useCallback, useEffect, useState} from 'react';
-import {bytesToString, createKey, stringToBytes} from '@/libs/utils';
 import LoadingIndicator from '@/components/LoadingIndicator';
 import {View} from 'react-native';
 import useBLESettingService from '@/hooks/ble/useBLESettingService';

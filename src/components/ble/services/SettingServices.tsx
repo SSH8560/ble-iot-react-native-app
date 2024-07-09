@@ -1,7 +1,7 @@
 import React from 'react';
-import ServiceLayout from './ServiceLayout';
+import ServiceLayout from '../layout/ServiceLayout';
 import useBLESettingService from '@/hooks/ble/useBLESettingService';
-import CharacteristicCard from './CharacteristicCard';
+import CharacteristicCard from '../card/CharacteristicCard';
 
 interface SettingServicesProps {
   peripheralId: string;

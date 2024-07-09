@@ -1,14 +1,15 @@
-import React, {useEffect, useState} from 'react';
+import React, {Suspense, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {MainTabParams, RootStackParams} from '@/router.d';
 import {CompositeScreenProps} from '@react-navigation/native';
 import {BottomTabScreenProps} from '@react-navigation/bottom-tabs';
-import {UserDevice, getUserDevices} from '@/apis/supabase/userDevices';
+import {getUserDevices} from '@/apis/supabase/userDevices';
 import Header from '@/components/Header';
-import DeviceList from '@/screens/MyDeviceScreen/components/DeviceList';
-import {Text} from 'react-native';
-import AddDeviceButton from './components/AddDeviceButton';
+import DeviceList from '@/components/ble/list/DeviceList';
+import AddDeviceButton from '../components/ble/button/AddDeviceButton';
+import LoadingIndicator from '@/components/LoadingIndicator';
+import {useSuspenseQuery} from '@tanstack/react-query';
 
 interface HomeScreenProps
   extends CompositeScreenProps<
@@ -17,11 +18,12 @@ interface HomeScreenProps
   > {}
 
 const MyDeviceScreen = ({navigation}: HomeScreenProps) => {
-  const [devices, setDevices] = useState<UserDevice[] | null>(null);
-
-  useEffect(() => {
-    getUserDevices().then(setDevices);
-  }, []);
+  const {data} = useSuspenseQuery({
+    queryKey: ['userDevice'],
+    async queryFn() {
+      return await getUserDevices();
+    },
+  });
 
   return (
     <View style={{flex: 1}}>
@@ -30,18 +32,14 @@ const MyDeviceScreen = ({navigation}: HomeScreenProps) => {
         right={<AddDeviceButton />}
         onPressRight={() => navigation.navigate('DeviceRegistration')}
       />
-      {!devices ? (
-        <View>
-          <Text style={{color: '#000'}}>로딩 중</Text>
-        </View>
-      ) : (
+      <Suspense fallback={<LoadingIndicator />}>
         <DeviceList
-          devices={devices}
+          devices={data}
           onPressDeviceItem={device =>
             navigation.navigate('ScaleDeviceDetail', {device})
           }
         />
-      )}
+      </Suspense>
     </View>
   );
 };
