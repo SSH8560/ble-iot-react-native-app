@@ -8,7 +8,12 @@ import dayjs from 'dayjs';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import Header from '@/components/Header';
 import {addDays, startOfDay} from 'date-fns';
-import {QueryFunctionContext, useQuery} from '@tanstack/react-query';
+import {
+  QueryFunctionContext,
+  useQuery,
+  useSuspenseQuery,
+} from '@tanstack/react-query';
+import {CartesianChart, Line} from 'victory-native';
 
 interface ScaleDeviceDetailScreenProps
   extends NativeStackScreenProps<RootStackParams, 'ScaleDeviceDetail'> {}
@@ -33,6 +38,7 @@ const ScaleDeviceDetailScreen = ({
 
   const startOfDate = startOfDay(selectedDate);
   const endOfDate = startOfDay(addDays(startOfDate, 1));
+  console.log(data);
 
   return (
     <View style={{width: '100%', height: 500}}>
@@ -48,12 +54,8 @@ const ScaleDeviceDetailScreen = ({
         onPressNextDay={setSelectedDate}
         onPressPrevDay={setSelectedDate}
       />
-      {data && (
-        <ScaleLineChart
-          data={data}
-          yDomain={[-100, 500]}
-          xDomain={[startOfDate, endOfDate]}
-        />
+      {data && data.length > 0 && (
+        <ScaleLineChart data={data} date={selectedDate} />
       )}
     </View>
   );

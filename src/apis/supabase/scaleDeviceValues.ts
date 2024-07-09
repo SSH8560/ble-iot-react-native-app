@@ -29,7 +29,10 @@ export const getScaleDeviceValues = async (
     throw new Error(error.message);
   }
 
-  return data as SimpleScaleDeviceValue[];
+  return data.map(({created_at, value}) => ({
+    value,
+    created_at: new Date(created_at),
+  })) as SimpleScaleDeviceValue[];
 };
 
 export type ScaleDeviceValue = {
